@@ -139,8 +139,8 @@ class Sp3Service
                 "ket_inv_pasien"  => $record->ket_inv_pasien,
                 "ket_inv_rs"      => $record->ket_inv_rs,
                 "eslon_id"          => $record->eselon->nama,
-                "total_pasien_sql"   => $record->total_pasien_sql ?? $record->total_pasien,
-                "total_kunjungan_sql" => $record->total_kunjungan_sql ?? $record->total_kunjungan,
+                "total_pasien_sql"   => $record->pasien ?? $record->total_pasien,
+                "total_kunjungan_sql" => $record->kunjungan ?? $record->total_kunjungan,
                 "ket_pembayaran"  => $record->ket_pembayaran,
                 "layanan_id"         => $record->layanan->nama,
                 "tgl_berobat"     => $record->tgl_masuk && $record->tgl_keluar
@@ -275,8 +275,8 @@ class Sp3Service
                 "ket_inv_pasien"   => $record->ket_inv_pasien,
                 "ket_inv_rs"       => $record->ket_inv_rs,
                 "eslon_id"           => $record->eselon->nama,
-                "total_pasien_sql"    => $record->total_pasien_sql ?? $record->total_pasien,
-                "total_kunjungan_sql" => $record->total_kunjungan_sql ?? $record->total_kunjungan,
+                "total_pasien_sql"   => $record->pasien ?? $record->total_pasien,
+                "total_kunjungan_sql" => $record->kunjungan ?? $record->total_kunjungan,
                 "ket_pembayaran"   => $record->ket_pembayaran,
                 "layanan_id"          => $record->layanan->nama,
                 "tgl_berobat"      => $record->tgl_masuk && $record->tgl_keluar
