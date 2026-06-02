@@ -60,7 +60,7 @@
                                                     {{ 'Rp ' . number_format($sp3->total_tagihan, 0, ',', '.') }}
                                                 </td>
                                             </tr>
-                                            @if ($sp3->alasan_rev)
+                                            @if ($sp3->is_revisi)
                                                 <tr>
                                                     <td><b>Note Revisi</b></td>
                                                     <td>:

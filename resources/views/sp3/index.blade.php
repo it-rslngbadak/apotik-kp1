@@ -188,6 +188,7 @@
                 serverSide: true,
                 ordering: true,
                 searching: true,
+                order: [],
                 ajax: {
                     url: "{{ route('get-sp3-verifikasi-data') }}",
                     data: function(d) {
@@ -213,8 +214,8 @@
                         name: 'tgl_terima_keu'
                     },
                     {
-                        data: 'perihal_tagihan',
-                        name: 'perihal_tagihan'
+                        data: 'perihal_tagihan_id',
+                        name: 'perihal_tagihan_id'
                     },
                     {
                         data: 'ket_inv_pasien',
@@ -225,28 +226,30 @@
                         name: 'ket_inv_rs'
                     },
                     {
-                        data: 'eselon',
-                        name: 'eselon'
+                        data: 'eslon_id',
+                        name: 'eslon_id'
                     },
                     {
-                        data: 'jumlah_pasien',
-                        name: 'jumlah_pasien'
+                        data: 'total_pasien_sql',
+                        name: 'total_pasien_sql'
                     },
                     {
-                        data: 'jumlah_kunjungan',
-                        name: 'jumlah_kunjungan'
+                        data: 'total_kunjungan_sql',
+                        name: 'total_kunjungan_sql'
                     },
                     {
                         data: 'ket_pembayaran',
                         name: 'ket_pembayaran'
                     },
                     {
-                        data: 'layanan',
-                        name: 'layanan'
+                        data: 'layanan_id',
+                        name: 'layanan_id'
                     },
                     {
                         data: 'tgl_berobat',
-                        name: 'tgl_berobat'
+                        name: 'tgl_berobat',
+                        orderable: false,
+                        searchable: false
                     },
                     {
                         data: 'total_tagihan',

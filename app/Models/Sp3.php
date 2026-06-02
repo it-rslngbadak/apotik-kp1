@@ -42,6 +42,7 @@ class Sp3 extends Model
         'is_approved_by_keuangan',
         'slug',
         'revisi',
+        'is_revisi',
         'alasan_rev'
     ];
 
