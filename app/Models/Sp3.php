@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Models\Eslon;
-use App\Models\Simrs\EselonSimrs;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
