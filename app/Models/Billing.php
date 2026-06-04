@@ -112,9 +112,9 @@ class Billing extends Model
             ->where('no_reg', $this->no_registrasi)
             ->where('payment', NULL)
             ->get();
-        $embalace = TransaksiEmbalaceSimrs::select(['no_reg', 'ppn', 'discount'])
+        $embalace = TransaksiEmbalaceSimrs::select(['no_reg', 'ppn', 'discount', 'ppn_share'])
             ->where('no_reg', $this->no_registrasi)
-            ->where('payment', NULL)
+            // ->where('payment', NULL)
             ->get();
         $dataEmbalace = [];
 
@@ -122,7 +122,7 @@ class Billing extends Model
         if ($embalace->count() == 0) {
             $dataEmbalace['ppn'] = $resepRawatJalan->sum(fn($b) => $b->harga_jual * $b->jumlah_dijual) * (11 / 100);
         } else {
-            $dataEmbalace['ppn'] = $embalace->sum(fn($b) => $b->ppn);
+            $dataEmbalace['ppn'] = $embalace->sum(fn($b) => $b->ppn) - $embalace->sum(fn($b) => $b->ppn_share);
         }
         $totalEselon = ($tindakan->sum('total_biaya')) + ($alkes->sum('total_biaya')) + ($resepRawatJalan->sum('total_biaya')) + ($resepRawatInap->sum('total_biaya')) + ($kamar->sum('total_biaya')) + (int) ceil($dataEmbalace['ppn']);
         if ($resepRawatInap->count() > 0 || $kamar->count() > 0) {
