@@ -76,7 +76,7 @@ class BillingController extends Controller
         $totalEselon = ($tindakan->sum('total_biaya')) + ($alkes->sum('total_biaya')) + ($resepRawatJalan->sum('total_biaya')) + ($resepRawatInap->sum('total_biaya')) + ($kamar->sum('total_biaya')) + ($embalace->sum('ppn'));
         if ($kamar->count() > 0 || $resepRawatInap->count() > 0) {
             $ref_adm = ReferensiAdmSimrs::select(['besar_fee', 'max_besar'])->where('kode_eselon', $billing->eselon->nama)->first();
-            $biayaAdm = ceil(($ref_adm->besar_fee / 100) * $totalEselon);
+            $biayaAdm = round(($ref_adm->besar_fee / 100) * $totalEselon);
             if ($biayaAdm > $ref_adm->max_besar) {
                 $biayaAdm = $ref_adm->max_besar;
             }
