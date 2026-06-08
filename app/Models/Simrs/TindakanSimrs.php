@@ -29,8 +29,8 @@ class TindakanSimrs extends Model
 
     public function getTotalBiayaAttribute()
     {
-        $total = $this->jumlah * $this->tindakan_biaya;
-        $discount = $total * ($this->discount / 100);
+        $total = round($this->jumlah * $this->tindakan_biaya);
+        $discount = round($total * ($this->discount / 100));
         $total_biaya = $total - $discount;
         return $total_biaya;
     }
