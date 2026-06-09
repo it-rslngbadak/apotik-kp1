@@ -483,11 +483,8 @@ class Sp3Service
                 'kota' => $data['kota'],
                 'nama_rs' => $data['nama_rs'],
                 'dokter_rujukan' => $data['dokter_rujukan'] ?? null,
-                'kunjungan' => $data['kunjungan'] ?? null,
-                'pasien' => $data['pasien'] ?? null,
                 'tgl_masuk' => $data['tgl_masuk'],
                 'tgl_keluar' => $data['tgl_keluar'],
-                'total_tagihan' => $data['total_tagihan'] ?? 0,
                 'keterangan' => $data['keterangan'],
             ]);
             Log::info('SP3 updated: ' . $sp3->id);
@@ -525,11 +522,8 @@ class Sp3Service
                 'kota' => $data['kota'],
                 'nama_rs' => $data['nama_rs'],
                 'dokter_rujukan' => $data['dokter_rujukan'] ?? null,
-                'kunjungan' => $data['kunjungan'] ?? null,
-                'pasien' => $data['pasien'] ?? null,
                 'tgl_masuk' => $data['tgl_masuk'],
                 'tgl_keluar' => $data['tgl_keluar'],
-                'total_tagihan' => $data['total_tagihan'] ?? 0,
                 'keterangan' => $data['keterangan'],
             ]);
             Log::info('SP3 updated: ' . $sp3->id);
