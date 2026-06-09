@@ -210,7 +210,6 @@ class BillingService
             $billings = $sp3->billings;
             $totalCob = $billings->sum(fn($b) => $b->cob);
             $totalDeposit = $billings->sum(fn($b) => $b->biaya_deposit);
-            $totalBiayaEselon = $billings->sum(fn($b) => $b->total_biaya_eselon);
             $totalTagihan = $totalDeposit - $totalCob;
             $sp3->update([
                 'total_tagihan' => $totalTagihan,
