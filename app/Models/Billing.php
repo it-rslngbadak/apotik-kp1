@@ -117,11 +117,14 @@ class Billing extends Model
             // ->where('payment', NULL)
             ->get();
         $dataEmbalace = [];
+        // if ($this->no_registrasi == 'A052603381') {
+        //     dd($tindakan);
+        // }
 
         if ($embalace->count() == 0) {
-            $dataEmbalace['ppn'] = $resepRawatJalan->sum(fn($b) => $b->harga_jual * $b->jumlah_dijual) * (11 / 100);
+            $dataEmbalace['ppn'] = $resepRawatJalan->sum(fn($b) => round($b->harga_jual) * $b->jumlah_dijual) * (11 / 100);
         } else {
-            $dataEmbalace['ppn'] = $embalace->sum(fn($b) => $b->ppn) - $embalace->sum(fn($b) => $b->ppn_share);
+            $dataEmbalace['ppn'] = $embalace->sum(fn($b) => round($b->ppn)) - $embalace->sum(fn($b) => round($b->ppn_share));
         }
         $totalEselon = (round($tindakan->sum('total_biaya'))) + (round($alkes->sum('total_biaya'))) + (round($resepRawatJalan->sum('total_biaya'))) + (round($resepRawatInap->sum('total_biaya'))) + (round($kamar->sum('total_biaya'))) + (int) round($dataEmbalace['ppn']);
 
