@@ -127,8 +127,10 @@ class Billing extends Model
             $dataEmbalace['ppn'] = $embalace->sum(fn($b) => round($b->ppn)) - $embalace->sum(fn($b) => round($b->ppn_share));
         }
         $totalEselon = (round($tindakan->sum('total_biaya'))) + (round($alkes->sum('total_biaya'))) + (round($resepRawatJalan->sum('total_biaya'))) + (round($resepRawatInap->sum('total_biaya'))) + (round($kamar->sum('total_biaya'))) + (int) round($dataEmbalace['ppn']);
-
-        if ($resepRawatInap->count() > 0 || $kamar->count() > 0) {
+        $ketKamar = $kamar->filter(function ($item) {
+            return str_contains(strtolower($item->keterangan), 'meninggal');
+        })->count();
+        if (($resepRawatInap->count() > 0 || $kamar->count() > 0) && !($ketKamar > 0)) {
             $ref_adm = ReferensiAdmSimrs::select(['besar_fee', 'max_besar'])->where('kode_eselon', $this->eselon->nama)->first();
             $biayaAdm = round($totalEselon * ($ref_adm->besar_fee / 100));
             $total = $totalEselon + $biayaAdm;

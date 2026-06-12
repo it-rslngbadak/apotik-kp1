@@ -70,11 +70,14 @@ class BillingController extends Controller
             ->get();
         $embalace = TransaksiEmbalaceSimrs::select(['no_reg', 'ppn', 'discount'])
             ->where('no_reg', $billing->no_registrasi)
-            ->where('payment', NULL)
+            // ->where('payment', NULL)
             ->get();
         $dataBiayaAdm = [];
         $totalEselon = ($tindakan->sum('total_biaya')) + ($alkes->sum('total_biaya')) + ($resepRawatJalan->sum('total_biaya')) + ($resepRawatInap->sum('total_biaya')) + ($kamar->sum('total_biaya')) + ($embalace->sum('ppn'));
-        if ($kamar->count() > 0 || $resepRawatInap->count() > 0) {
+        $ketKamar = $kamar->filter(function ($item) {
+            return str_contains(strtolower($item->keterangan), 'meninggal');
+        })->count();
+        if (($resepRawatInap->count() > 0 || $kamar->count() > 0) && !($ketKamar > 0)) {
             $ref_adm = ReferensiAdmSimrs::select(['besar_fee', 'max_besar'])->where('kode_eselon', $billing->eselon->nama)->first();
             $biayaAdm = round(($ref_adm->besar_fee / 100) * $totalEselon);
             if ($biayaAdm > $ref_adm->max_besar) {
