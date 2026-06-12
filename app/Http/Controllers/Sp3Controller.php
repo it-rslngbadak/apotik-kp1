@@ -173,25 +173,19 @@ class Sp3Controller extends Controller
                 ->get()
                 ->groupBy('reg_no')
                 ->filter(function ($group) {
-                    // Jika reg_no hanya muncul 1 kali DAN jadi nilainya 'Y' → buang
-                    if ($group->count() === 1) {
-                        $nilai = $group->first()->jadi; // ganti 'nama_kolom' dengan nama kolom aslinya
-                        if ($nilai === 'Y') {
-                            return false; // buang data ini
-                        }
-                    }
-                    return true; // ambil data ini
+                    // Buang jika SEMUA record dalam group punya jadi = 'Y'
+                    $adaYangTidakBatal = $group->where('jadi', '!=', 'Y')->count() > 0;
+                    return $adaYangTidakBatal; // ← hanya lolos jika ada setidaknya 1 non-Y
                 })
                 ->map(function ($group) {
                     $dataBatal = $group->where('jadi', 'Y');
-                    $adaBatal  = $group->count() > 1 && $dataBatal->count() > 0;
+                    $adaBatal  = $dataBatal->count() > 0;
 
-                    $dataUtama = $group->where('jadi', '!=', 'Y')->first() ?? $group->first();
+                    // Setelah filter di atas, dijamin ada minimal 1 non-Y
+                    $dataUtama = $group->where('jadi', '!=', 'Y')->first();
 
                     if ($adaBatal) {
                         $jumlahBatal = $dataBatal->count();
-
-                        // Ambil poli_name dari relasi masterPoli
                         $namaPoli = $dataBatal->map(fn($item) => $item->masterPoli?->poli_name ?? $item->kode_poli);
 
                         if ($jumlahBatal === 1) {
@@ -206,7 +200,7 @@ class Sp3Controller extends Controller
 
                     return $dataUtama;
                 })
-                ->flatten()
+                ->values() // ← ganti flatten() dengan values() untuk reset key saja
                 ->unique('reg_no');
         }
         if ($getDataReg->isEmpty()) {
@@ -312,14 +306,8 @@ class Sp3Controller extends Controller
                 ->get()
                 ->groupBy('reg_no')
                 ->filter(function ($group) {
-                    // Jika reg_no hanya muncul 1 kali DAN jadi nilainya 'Y' → buang
-                    if ($group->count() === 1) {
-                        $nilai = $group->first()->jadi; // ⭐ ganti 'nama_kolom' dengan nama kolom aslinya
-                        if ($nilai === 'Y') {
-                            return false; // buang data ini
-                        }
-                    }
-                    return true; // ambil data ini
+                    $adaYangTidakBatal = $group->where('jadi', '!=', 'Y')->count() > 0;
+                    return $adaYangTidakBatal;
                 })
                 ->map(function ($group) {
                     $dataBatal = $group->where('jadi', 'Y');
@@ -342,10 +330,9 @@ class Sp3Controller extends Controller
                     } else {
                         $dataUtama->keterangan_batal = null;
                     }
-
                     return $dataUtama;
                 })
-                ->flatten()
+                ->values()
                 ->unique('reg_no');
             $getDataReg = $getDataReg->unique('reg_no');
         }
@@ -437,14 +424,8 @@ class Sp3Controller extends Controller
                 ->get()
                 ->groupBy('reg_no')
                 ->filter(function ($group) {
-                    // Jika reg_no hanya muncul 1 kali DAN jadi nilainya 'Y' → buang
-                    if ($group->count() === 1) {
-                        $nilai = $group->first()->jadi; // ⭐ ganti 'nama_kolom' dengan nama kolom aslinya
-                        if ($nilai === 'Y') {
-                            return false; // buang data ini
-                        }
-                    }
-                    return true; // ambil data ini
+                    $adaYangTidakBatal = $group->where('jadi', '!=', 'Y')->count() > 0;
+                    return $adaYangTidakBatal;
                 })
                 ->map(function ($group) {
                     $dataBatal = $group->where('jadi', 'Y');
@@ -469,7 +450,7 @@ class Sp3Controller extends Controller
                     }
                     return $dataUtama;
                 })
-                ->flatten()
+                ->values()
                 ->unique('reg_no');
         }
         if ($getDataReg->isEmpty()) {
