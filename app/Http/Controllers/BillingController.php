@@ -77,7 +77,7 @@ class BillingController extends Controller
         $ketKamar = $kamar->filter(function ($item) {
             return str_contains(strtolower($item->keterangan), 'meninggal');
         })->count();
-        if (($resepRawatInap->count() > 0 || $kamar->count() > 0) && !($ketKamar > 0)) {
+        if (($resepRawatInap->count() > 0 || $kamar->count() > 0) && !($ketKamar > 0) && !($billing->eselon->nama == 'DNPPKB')) {
             $ref_adm = ReferensiAdmSimrs::select(['besar_fee', 'max_besar'])->where('kode_eselon', $billing->eselon->nama)->first();
             $biayaAdm = round(($ref_adm->besar_fee / 100) * $totalEselon);
             if ($biayaAdm > $ref_adm->max_besar) {

@@ -130,7 +130,7 @@ class Billing extends Model
         $ketKamar = $kamar->filter(function ($item) {
             return str_contains(strtolower($item->keterangan), 'meninggal');
         })->count();
-        if (($resepRawatInap->count() > 0 || $kamar->count() > 0) && !($ketKamar > 0)) {
+        if (($resepRawatInap->count() > 0 || $kamar->count() > 0) && !($ketKamar > 0) && !($this->eselon->nama == 'DNPPKB')) {
             $ref_adm = ReferensiAdmSimrs::select(['besar_fee', 'max_besar'])->where('kode_eselon', $this->eselon->nama)->first();
             $biayaAdm = round($totalEselon * ($ref_adm->besar_fee / 100));
             $total = $totalEselon + $biayaAdm;
