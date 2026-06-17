@@ -67,7 +67,8 @@ class Sp3Controller extends Controller
         'RJ031',
         'RJ032',
         'RJ033',
-        'RJ035'
+        'RJ035',
+        'PRJK',
     ];
     public function index()
     {
