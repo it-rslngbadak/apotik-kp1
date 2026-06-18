@@ -45,7 +45,7 @@ function set_active($route)
 
 Route::get('/', function () {
     return view('auth.login');
-});
+})->middleware('guest');
 
 Route::group(['middleware' => 'auth'], function () {
     Route::get('home', function () {
@@ -68,8 +68,8 @@ Auth::routes();
 Route::group(['namespace' => 'App\Http\Controllers\Auth'], function () {
     // ----------------------------login ------------------------------//
     Route::controller(LoginController::class)->group(function () {
-        Route::get('/login', 'login')->name('login');
-        Route::post('/login', 'authenticate');
+        Route::get('/login', 'login')->middleware('guest')->name('login');
+        Route::post('/login', 'authenticate')->middleware('guest');
         Route::get('/logout', 'logout')->name('logout');
         Route::post('change/password', 'changePassword')->name('change/password');
     });
