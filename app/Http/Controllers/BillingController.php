@@ -10,6 +10,7 @@ use App\Models\Layanan;
 use App\Models\Simrs\DepositKamarSimrs;
 use App\Models\Simrs\KipKirimanSimrs;
 use App\Models\Simrs\ReferensiAdmSimrs;
+use App\Models\Simrs\ReferensiDiscountSimrs;
 use App\Models\Simrs\RegMultiPoliSimrs;
 use App\Models\Simrs\TindakanSimrs;
 use App\Models\Simrs\TransaksiAlkesSimrs;
@@ -72,8 +73,14 @@ class BillingController extends Controller
             ->where('no_reg', $billing->no_registrasi)
             // ->where('payment', NULL)
             ->get();
-        $dataBiayaAdm = [];
-        $totalEselon = ($tindakan->sum('total_biaya')) + ($alkes->sum('total_biaya')) + ($resepRawatJalan->sum('total_biaya')) + ($resepRawatInap->sum('total_biaya')) + ($kamar->sum('total_biaya')) + ($embalace->sum('ppn'));
+        $dataEmbalace = [];
+
+        if ($embalace->count() == 0) {
+            $dataEmbalace['ppn'] = $resepRawatJalan->sum(fn($b) => round($b->harga_jual) * $b->jumlah_dijual) * (11 / 100);
+        } else {
+            $dataEmbalace['ppn'] = $embalace->sum(fn($b) => round($b->ppn)) - $embalace->sum(fn($b) => round($b->ppn_share));
+        }
+        $totalEselon = (round($tindakan->sum('total_biaya'))) + (round($alkes->sum('total_biaya'))) + (round($resepRawatJalan->sum('total_biaya'))) + (round($resepRawatInap->sum('total_biaya'))) + (round($kamar->sum('total_biaya'))) + (int) round($dataEmbalace['ppn']);
         $ketKamar = $kamar->filter(function ($item) {
             return str_contains(strtolower($item->keterangan), 'meninggal');
         })->count();
@@ -83,6 +90,16 @@ class BillingController extends Controller
             if ($biayaAdm > $ref_adm->max_besar) {
                 $biayaAdm = $ref_adm->max_besar;
             }
+            // $ref_disc = ReferensiDiscountSimrs::select(['kode_eselon', 'jenis_disc', 'discount'])
+            //     ->where('kode_eselon', $billing->eselon->nama)
+            //     ->where('jenis_disc', '6A')
+            //     ->where('ceklist', 'Y')
+            //     ->first();
+            // if (in_array($billing->eselon->nama, ['PTPPNS', 'BRILIFMC'])) {
+            //     $biayaAdm = $biayaAdm - round($biayaAdm * ($ref_disc->discount / 100));
+            //     dd($biayaAdm);
+            //     // dd($billing->eselon->nama);
+            // }
             $dataBiayaAdm = [
                 'nama_tindakan' => $ref_adm->deskripsi,
                 'jumlah' => 1,
