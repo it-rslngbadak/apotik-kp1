@@ -84,22 +84,21 @@ class BillingController extends Controller
         $ketKamar = $kamar->filter(function ($item) {
             return str_contains(strtolower($item->keterangan), 'meninggal');
         })->count();
+        $dataBiayaAdm = [];
         if (($resepRawatInap->count() > 0 || $kamar->count() > 0) && !($ketKamar > 0) && !($billing->eselon->nama == 'DNPPKB')) {
             $ref_adm = ReferensiAdmSimrs::select(['besar_fee', 'max_besar'])->where('kode_eselon', $billing->eselon->nama)->first();
             $biayaAdm = round(($ref_adm->besar_fee / 100) * $totalEselon);
+            $ref_disc = ReferensiDiscountSimrs::select(['kode_eselon', 'jenis_disc', 'discount'])
+                ->where('kode_eselon', $billing->eselon->nama)
+                ->where('jenis_disc', '6A')
+                ->where('ceklist', 'Y')
+                ->first();
+            if (in_array($billing->eselon->nama, ['PTPPNS', 'BRILIFMC'])) {
+                $biayaAdm = $biayaAdm - round($biayaAdm * ($ref_disc->discount / 100));
+            }
             if ($biayaAdm > $ref_adm->max_besar) {
                 $biayaAdm = $ref_adm->max_besar;
             }
-            // $ref_disc = ReferensiDiscountSimrs::select(['kode_eselon', 'jenis_disc', 'discount'])
-            //     ->where('kode_eselon', $billing->eselon->nama)
-            //     ->where('jenis_disc', '6A')
-            //     ->where('ceklist', 'Y')
-            //     ->first();
-            // if (in_array($billing->eselon->nama, ['PTPPNS', 'BRILIFMC'])) {
-            //     $biayaAdm = $biayaAdm - round($biayaAdm * ($ref_disc->discount / 100));
-            //     dd($biayaAdm);
-            //     // dd($billing->eselon->nama);
-            // }
             $dataBiayaAdm = [
                 'nama_tindakan' => $ref_adm->deskripsi,
                 'jumlah' => 1,

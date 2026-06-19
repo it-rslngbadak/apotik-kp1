@@ -27,10 +27,10 @@ class TransaksiResepSimrs extends Model
         return $tindakan;
     }
 
-    public function getTotalBiayaAttribute()
+    public function getTotalBiayaAttribute(): int
     {
-        $total = round($this->jumlah_dijual * round($this->harga_jual));
-        $discount = round($total * ($this->discount / 100));
+        $total = round((int)$this->jumlah_dijual * round($this->harga_jual));
+        $discount = round($total * ((int)$this->discount / 100));
         $total_biaya = $total - $discount;
         return $total_biaya;
     }
