@@ -86,6 +86,7 @@ return array(
     'App\\Models\\Simrs\\PasienSimrs' => $baseDir . '/app/Models/Simrs/PasienSimrs.php',
     'App\\Models\\Simrs\\PropinsiSimrs' => $baseDir . '/app/Models/Simrs/PropinsiSimrs.php',
     'App\\Models\\Simrs\\ReferensiAdmSimrs' => $baseDir . '/app/Models/Simrs/ReferensiAdmSimrs.php',
+    'App\\Models\\Simrs\\ReferensiDiscountSimrs' => $baseDir . '/app/Models/Simrs/ReferensiDiscountSimrs.php',
     'App\\Models\\Simrs\\RegMultiPoliSimrs' => $baseDir . '/app/Models/Simrs/RegMultiPoliSimrs.php',
     'App\\Models\\Simrs\\RegSimrs' => $baseDir . '/app/Models/Simrs/RegSimrs.php',
     'App\\Models\\Simrs\\TindakanSimrs' => $baseDir . '/app/Models/Simrs/TindakanSimrs.php',
