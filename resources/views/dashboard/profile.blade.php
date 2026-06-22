@@ -21,7 +21,7 @@
                             <div class="col-auto profile-image">
                                 <a href="#">
                                     <img class="rounded-circle" alt="{{ Session::get('name') }}"
-                                        src="/images/{{ Session::get('avatar') }}">
+                                        src="{{ URL::to('assets/img/icons/lesson-icon-05.svg') }}">
                                 </a>
                             </div>
                             <div class="col ms-md-n2 profile-user-info">
