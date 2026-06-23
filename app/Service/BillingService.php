@@ -38,7 +38,7 @@ class BillingService
                     'tanggal_keluar' => $value->tanggal_registrasi,
                     'keterangan'     => $value->keterangan_batal,
                     'slug'           => $slug,
-                    'biaya_eselon'      => $totalBiayaEselon, // ← disimpan ke DB
+                    'biaya_eselon'    => $totalBiayaEselon, // ← disimpan ke DB
                     'biaya_deposit'   => $deposit,
                 ];
             })->toArray();
