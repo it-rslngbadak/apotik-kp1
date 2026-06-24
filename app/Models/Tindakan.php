@@ -10,6 +10,8 @@ class Tindakan extends Model
 {
     use HasFactory;
 
+    protected $connection = 'pgsql';
+
     protected $table = 'tindakans';
 
     protected $fillable = [

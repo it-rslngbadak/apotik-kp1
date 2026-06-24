@@ -11,6 +11,8 @@ class Sp3 extends Model
 {
     use HasFactory;
 
+    protected $connection = 'pgsql';
+
     protected $table = 'sp3s';
 
     protected $fillable = [

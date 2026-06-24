@@ -9,6 +9,8 @@ class PerihalTagihan extends Model
 {
     use HasFactory;
 
+    protected $connection = 'pgsql';
+
     protected $table = 'perihal_tagihans';
 
     protected $fillable = [

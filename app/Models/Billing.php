@@ -20,6 +20,8 @@ class Billing extends Model
 {
     use HasFactory;
 
+    protected $connection = 'pgsql';
+
     protected $table = 'billings';
 
     protected $fillable = [
