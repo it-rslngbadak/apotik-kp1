@@ -135,6 +135,7 @@ class Sp3Controller extends Controller
             ->where('tgl_masuk', $validated['tgl_masuk'])
             ->where('tgl_keluar', $validated['tgl_keluar'])
             ->where('layanan_id', $validated['layanan_id'])
+            ->where('jenis_sp3', $validated['jenis_sp3'])
             ->get();
         if ($sp3->count() > 0) {
             Toastr::error('Data SP3 dengan eselon dan tanggal yang sama sudah ada.', 'Error');
