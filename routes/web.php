@@ -35,17 +35,17 @@ use Illuminate\Support\Facades\Route;
 */
 
 /** for side bar menu active */
-function set_active($route)
-{
-    if (is_array($route)) {
-        return in_array(Request::path(), $route) ? 'active' : '';
-    }
-    return Request::path() == $route ? 'active' : '';
-}
+// function set_active($route)
+// {
+//     if (is_array($route)) {
+//         return in_array(Request::path(), $route) ? 'active' : '';
+//     }
+//     return Request::path() == $route ? 'active' : '';
+// }
 
 Route::get('/', function () {
     return view('auth.login');
-});
+})->middleware('guest');
 
 Route::group(['middleware' => 'auth'], function () {
     Route::get('home', function () {
@@ -68,9 +68,9 @@ Auth::routes();
 Route::group(['namespace' => 'App\Http\Controllers\Auth'], function () {
     // ----------------------------login ------------------------------//
     Route::controller(LoginController::class)->group(function () {
-        Route::get('/login', 'login')->name('login');
-        Route::post('/login', 'authenticate');
-        Route::get('/logout', 'logout')->name('logout');
+        Route::get('/login', 'login')->middleware('guest')->name('login');
+        Route::post('/login', 'authenticate')->middleware('guest');
+        Route::get('/logout', 'logout')->name('logout-user');
         Route::post('change/password', 'changePassword')->name('change/password');
     });
 });

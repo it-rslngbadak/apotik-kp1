@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Simrs\DepositKamarSimrs;
 use App\Models\Simrs\KipKirimanSimrs;
 use App\Models\Simrs\ReferensiAdmSimrs;
+use App\Models\Simrs\ReferensiDiscountSimrs;
 use App\Models\Simrs\TindakanSimrs;
 use App\Models\Simrs\TransaksiAlkesSimrs;
 use App\Models\Simrs\TransaksiEmbalaceSimrs;
@@ -18,6 +19,8 @@ use Illuminate\Support\Str;
 class Billing extends Model
 {
     use HasFactory;
+
+    protected $connection = 'pgsql';
 
     protected $table = 'billings';
 
@@ -118,16 +121,31 @@ class Billing extends Model
             ->get();
         $dataEmbalace = [];
 
-        // Logic utama tanpa dibatasi no_registrasi
         if ($embalace->count() == 0) {
-            $dataEmbalace['ppn'] = $resepRawatJalan->sum(fn($b) => $b->harga_jual * $b->jumlah_dijual) * (11 / 100);
+            $dataEmbalace['ppn'] = $resepRawatJalan->sum(fn($b) => round($b->harga_jual) * $b->jumlah_dijual) * (11 / 100);
         } else {
-            $dataEmbalace['ppn'] = $embalace->sum(fn($b) => $b->ppn) - $embalace->sum(fn($b) => $b->ppn_share);
+            $dataEmbalace['ppn'] = $embalace->sum(fn($b) => round($b->ppn)) - $embalace->sum(fn($b) => round($b->ppn_share));
         }
-        $totalEselon = ($tindakan->sum('total_biaya')) + ($alkes->sum('total_biaya')) + ($resepRawatJalan->sum('total_biaya')) + ($resepRawatInap->sum('total_biaya')) + ($kamar->sum('total_biaya')) + (int) ceil($dataEmbalace['ppn']);
-        if ($resepRawatInap->count() > 0 || $kamar->count() > 0) {
+        $totalEselon = (round($tindakan->sum('total_biaya'))) + (round($alkes->sum('total_biaya'))) + (round($resepRawatJalan->sum('total_biaya'))) + (round($resepRawatInap->sum('total_biaya'))) + (round($kamar->sum('total_biaya'))) + (int) round($dataEmbalace['ppn']);
+        $ketKamar = $kamar->filter(function ($item) {
+            return str_contains(strtolower($item->keterangan), 'meninggal');
+        })->count();
+        // dd($tindakan->sum('total_biaya') . ' ' . $alkes->sum('total_biaya') . ' ' . $resepRawatJalan->sum('total_biaya') . ' ' . $resepRawatInap->sum('total_biaya') . ' ' . $kamar->sum('total_biaya') . ' ' . $dataEmbalace['ppn']);
+        if (($resepRawatInap->count() > 0 || $kamar->count() > 0) && !($ketKamar > 0) && !($this->eselon->nama == 'DNPPKB')) {
             $ref_adm = ReferensiAdmSimrs::select(['besar_fee', 'max_besar'])->where('kode_eselon', $this->eselon->nama)->first();
-            $biayaAdm = $kamar->sum('tarif_sewa') == 0 ? 0 : ceil($totalEselon * ($ref_adm->besar_fee / 100));
+            $biayaAdm = round($totalEselon * ($ref_adm->besar_fee / 100));
+            $ref_disc = ReferensiDiscountSimrs::select(['kode_eselon', 'jenis_disc', 'discount'])
+                ->where('kode_eselon', $this->eselon->nama)
+                ->where('jenis_disc', '6A')
+                ->where('ceklist', 'Y')
+                ->first();
+            if (in_array($this->eselon->nama, ['PTPPNS', 'BRILIFMC'])) {
+                $biayaAdm = $biayaAdm - round($biayaAdm * ($ref_disc->discount / 100));
+                // if ($this->no_registrasi == 'A052605370') {
+                //     dd($biayaAdm);
+                // }
+                // dd($billing->eselon->nama);
+            }
             $total = $totalEselon + $biayaAdm;
             if ($biayaAdm > $ref_adm->max_besar) {
                 $totalEselon = $totalEselon + ($ref_adm->max_besar);
@@ -171,15 +189,21 @@ class Billing extends Model
             ->where('no_reg', $this->no_registrasi)
             ->where('payment', NULL)
             ->get();
-        $embalace = TransaksiEmbalaceSimrs::select(['no_reg', 'ppn', 'discount'])
+        $embalace = TransaksiEmbalaceSimrs::select(['no_reg', 'ppn', 'discount', 'ppn_share'])
             ->where('no_reg', $this->no_registrasi)
-            ->where('payment', NULL)
+            // ->where('payment', NULL)
             ->get();
 
-        $totalEselon = ($tindakan->sum('total_biaya')) + ($alkes->sum('total_biaya')) + ($resepRawatJalan->sum('total_biaya')) + ($resepRawatInap->sum('total_biaya')) + ($kamar->sum('total_biaya')) + ($embalace->sum('ppn'));
+        if ($embalace->count() == 0) {
+            $dataEmbalace['ppn'] = $resepRawatJalan->sum(fn($b) => $b->harga_jual * $b->jumlah_dijual) * (11 / 100);
+        } else {
+            $dataEmbalace['ppn'] = $embalace->sum(fn($b) => $b->ppn) - $embalace->sum(fn($b) => $b->ppn_share);
+        }
+
+        $totalEselon = ($tindakan->sum('total_biaya')) + ($alkes->sum('total_biaya')) + ($resepRawatJalan->sum('total_biaya')) + ($resepRawatInap->sum('total_biaya')) + ($kamar->sum('total_biaya')) + (int) ($dataEmbalace['ppn']);
         if ($resepRawatInap->count() > 0 || $kamar->count() > 0) {
             $ref_adm = ReferensiAdmSimrs::select(['besar_fee', 'max_besar'])->where('kode_eselon', $this->eselon->nama)->first();
-            $biayaAdm = $kamar->sum('tarif_sewa') == 0 ? 0 : ceil($totalEselon * ($ref_adm->besar_fee / 100));
+            $biayaAdm = $kamar->sum('tarif_sewa') == 0 ? 0 : round($totalEselon * ($ref_adm->besar_fee / 100));
             $total = $totalEselon + $biayaAdm;
             if ($biayaAdm > $ref_adm->max_besar) {
                 $totalEselon = $totalEselon + ($ref_adm->max_besar);

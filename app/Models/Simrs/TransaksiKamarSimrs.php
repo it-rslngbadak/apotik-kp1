@@ -19,8 +19,8 @@ class TransaksiKamarSimrs extends Model
 
     public function getTotalBiayaAttribute()
     {
-        $total = $this->lama_hari * $this->tarif_sewa;
-        $discount = $total * ($this->discount / 100);
+        $total = round($this->lama_hari * round($this->tarif_sewa));
+        $discount = round($total * ((int)$this->discount / 100));
         $total_biaya = $total - $discount;
         return $total_biaya;
     }

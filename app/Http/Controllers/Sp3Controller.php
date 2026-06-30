@@ -18,6 +18,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Brian2694\Toastr\Facades\Toastr;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class Sp3Controller extends Controller
 {
@@ -68,6 +69,7 @@ class Sp3Controller extends Controller
         'RJ033',
         'RJ035',
         'PRJK',
+        'RIN02',
     ];
     public function index()
     {
@@ -134,6 +136,7 @@ class Sp3Controller extends Controller
             ->where('tgl_masuk', $validated['tgl_masuk'])
             ->where('tgl_keluar', $validated['tgl_keluar'])
             ->where('layanan_id', $validated['layanan_id'])
+            ->where('jenis_sp3', $validated['jenis_sp3'])
             ->get();
         if ($sp3->count() > 0) {
             Toastr::error('Data SP3 dengan eselon dan tanggal yang sama sudah ada.', 'Error');
@@ -173,25 +176,19 @@ class Sp3Controller extends Controller
                 ->get()
                 ->groupBy('reg_no')
                 ->filter(function ($group) {
-                    // Jika reg_no hanya muncul 1 kali DAN jadi nilainya 'Y' → buang
-                    if ($group->count() === 1) {
-                        $nilai = $group->first()->jadi; // ganti 'nama_kolom' dengan nama kolom aslinya
-                        if ($nilai === 'Y') {
-                            return false; // buang data ini
-                        }
-                    }
-                    return true; // ambil data ini
+                    // Buang jika SEMUA record dalam group punya jadi = 'Y'
+                    $adaYangTidakBatal = $group->where('jadi', '!=', 'Y')->count() > 0;
+                    return $adaYangTidakBatal; // ← hanya lolos jika ada setidaknya 1 non-Y
                 })
                 ->map(function ($group) {
                     $dataBatal = $group->where('jadi', 'Y');
-                    $adaBatal  = $group->count() > 1 && $dataBatal->count() > 0;
+                    $adaBatal  = $dataBatal->count() > 0;
 
-                    $dataUtama = $group->where('jadi', '!=', 'Y')->first() ?? $group->first();
+                    // Setelah filter di atas, dijamin ada minimal 1 non-Y
+                    $dataUtama = $group->where('jadi', '!=', 'Y')->first();
 
                     if ($adaBatal) {
                         $jumlahBatal = $dataBatal->count();
-
-                        // Ambil poli_name dari relasi masterPoli
                         $namaPoli = $dataBatal->map(fn($item) => $item->masterPoli?->poli_name ?? $item->kode_poli);
 
                         if ($jumlahBatal === 1) {
@@ -206,7 +203,7 @@ class Sp3Controller extends Controller
 
                     return $dataUtama;
                 })
-                ->flatten()
+                ->values() // ← ganti flatten() dengan values() untuk reset key saja
                 ->unique('reg_no');
         }
         if ($getDataReg->isEmpty()) {
@@ -312,14 +309,8 @@ class Sp3Controller extends Controller
                 ->get()
                 ->groupBy('reg_no')
                 ->filter(function ($group) {
-                    // Jika reg_no hanya muncul 1 kali DAN jadi nilainya 'Y' → buang
-                    if ($group->count() === 1) {
-                        $nilai = $group->first()->jadi; // ⭐ ganti 'nama_kolom' dengan nama kolom aslinya
-                        if ($nilai === 'Y') {
-                            return false; // buang data ini
-                        }
-                    }
-                    return true; // ambil data ini
+                    $adaYangTidakBatal = $group->where('jadi', '!=', 'Y')->count() > 0;
+                    return $adaYangTidakBatal;
                 })
                 ->map(function ($group) {
                     $dataBatal = $group->where('jadi', 'Y');
@@ -342,10 +333,9 @@ class Sp3Controller extends Controller
                     } else {
                         $dataUtama->keterangan_batal = null;
                     }
-
                     return $dataUtama;
                 })
-                ->flatten()
+                ->values()
                 ->unique('reg_no');
             $getDataReg = $getDataReg->unique('reg_no');
         }
@@ -437,14 +427,8 @@ class Sp3Controller extends Controller
                 ->get()
                 ->groupBy('reg_no')
                 ->filter(function ($group) {
-                    // Jika reg_no hanya muncul 1 kali DAN jadi nilainya 'Y' → buang
-                    if ($group->count() === 1) {
-                        $nilai = $group->first()->jadi; // ⭐ ganti 'nama_kolom' dengan nama kolom aslinya
-                        if ($nilai === 'Y') {
-                            return false; // buang data ini
-                        }
-                    }
-                    return true; // ambil data ini
+                    $adaYangTidakBatal = $group->where('jadi', '!=', 'Y')->count() > 0;
+                    return $adaYangTidakBatal;
                 })
                 ->map(function ($group) {
                     $dataBatal = $group->where('jadi', 'Y');
@@ -469,7 +453,7 @@ class Sp3Controller extends Controller
                     }
                     return $dataUtama;
                 })
-                ->flatten()
+                ->values()
                 ->unique('reg_no');
         }
         if ($getDataReg->isEmpty()) {
@@ -603,9 +587,9 @@ class Sp3Controller extends Controller
         $cob = $sp3->billings->sum(fn($b) => $b->cob);
         $jenis_pembayaran = $sp3->ket_pembayaran == 'Pembayaran Biaya' ? 'Pembayaran' : 'Penagihan';
         if ($sp3->jenis_sp3 === 'billing' || $sp3->jenis_sp3 === 'mcu') {
-            $deposit = $sp3->billings->sum(fn($b) => $b->deposit);
-            $tagihan = $sp3->total_tagihan;
-            $jumlah_pembayaran = $tagihan - $cob;
+            $deposit = $sp3->billings->sum(fn($b) => $b->biaya_deposit);
+            $tagihan = $sp3->billings->sum(fn($b) => $b->biaya_eselon);
+            $jumlah_pembayaran = ($tagihan - $deposit) - $cob;
         } else if ($sp3->jenis_sp3 === 'deposito') {
             $tagihan = $sp3->billings->sum(fn($b) => $b->biaya_deposit);
             $deposit = 0;
@@ -663,6 +647,11 @@ class Sp3Controller extends Controller
     /** get sp3 data */
     public function getSp3VerifikasiData(Request $request)
     {
+        Log::info('Filter tanggal:', [
+            'dari_tgl'   => $request->get('dari_tgl'),
+            'sampai_tgl' => $request->get('sampai_tgl'),
+            'filter_eselon' => (int)$request->get('filter_eselon'),
+        ]);
         $response = Sp3Service::getSp3VerifikasiData($request);
         return response()->json($response);
     }

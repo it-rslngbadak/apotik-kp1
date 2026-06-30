@@ -28,8 +28,8 @@ class KipKirimanSimrs extends Model
 
     public function getTotalBiayaAttribute()
     {
-        $total = $this->jumlah_kiriman * $this->harga;
-        $discount = $total * ($this->discount / 100);
+        $total = round((int)$this->jumlah_kiriman * round($this->harga));
+        $discount = round($total * ((int)$this->discount / 100));
         $total_biaya = $total - $discount;
         return $total_biaya;
     }

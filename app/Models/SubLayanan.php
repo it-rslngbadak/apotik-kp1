@@ -9,6 +9,9 @@ use Illuminate\Support\Str;
 class SubLayanan extends Model
 {
     use HasFactory;
+
+    protected $connection = 'pgsql';
+
     protected $table = 'sub_layanans';
 
     protected $fillable = [
@@ -37,9 +40,10 @@ class SubLayanan extends Model
         $count = 1;
 
         while (static::where('slug', $slug)
-            ->when($ignoreId, fn ($query) => $query->where('id', '!=', $ignoreId))
-            ->exists()) {
-            $slug = $original.'-'.$count++;
+            ->when($ignoreId, fn($query) => $query->where('id', '!=', $ignoreId))
+            ->exists()
+        ) {
+            $slug = $original . '-' . $count++;
         }
 
         return $slug;
@@ -50,7 +54,8 @@ class SubLayanan extends Model
         return 'slug';
     }
 
-    public function layanan(){
-        return $this->belongsTo(Layanan::class,'layanan_id','id');
+    public function layanan()
+    {
+        return $this->belongsTo(Layanan::class, 'layanan_id', 'id');
     }
 }

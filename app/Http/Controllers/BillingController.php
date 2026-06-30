@@ -10,6 +10,7 @@ use App\Models\Layanan;
 use App\Models\Simrs\DepositKamarSimrs;
 use App\Models\Simrs\KipKirimanSimrs;
 use App\Models\Simrs\ReferensiAdmSimrs;
+use App\Models\Simrs\ReferensiDiscountSimrs;
 use App\Models\Simrs\RegMultiPoliSimrs;
 use App\Models\Simrs\TindakanSimrs;
 use App\Models\Simrs\TransaksiAlkesSimrs;
@@ -70,13 +71,31 @@ class BillingController extends Controller
             ->get();
         $embalace = TransaksiEmbalaceSimrs::select(['no_reg', 'ppn', 'discount'])
             ->where('no_reg', $billing->no_registrasi)
-            ->where('payment', NULL)
+            // ->where('payment', NULL)
             ->get();
+        $dataEmbalace = [];
+
+        if ($embalace->count() == 0) {
+            $dataEmbalace['ppn'] = $resepRawatJalan->sum(fn($b) => round($b->harga_jual) * $b->jumlah_dijual) * (11 / 100);
+        } else {
+            $dataEmbalace['ppn'] = $embalace->sum(fn($b) => round($b->ppn)) - $embalace->sum(fn($b) => round($b->ppn_share));
+        }
+        $totalEselon = (round($tindakan->sum('total_biaya'))) + (round($alkes->sum('total_biaya'))) + (round($resepRawatJalan->sum('total_biaya'))) + (round($resepRawatInap->sum('total_biaya'))) + (round($kamar->sum('total_biaya'))) + (int) round($dataEmbalace['ppn']);
+        $ketKamar = $kamar->filter(function ($item) {
+            return str_contains(strtolower($item->keterangan), 'meninggal');
+        })->count();
         $dataBiayaAdm = [];
-        $totalEselon = ($tindakan->sum('total_biaya')) + ($alkes->sum('total_biaya')) + ($resepRawatJalan->sum('total_biaya')) + ($resepRawatInap->sum('total_biaya')) + ($kamar->sum('total_biaya')) + ($embalace->sum('ppn'));
-        if ($kamar->count() > 0 || $resepRawatInap->count() > 0) {
+        if (($resepRawatInap->count() > 0 || $kamar->count() > 0) && !($ketKamar > 0) && !($billing->eselon->nama == 'DNPPKB')) {
             $ref_adm = ReferensiAdmSimrs::select(['besar_fee', 'max_besar'])->where('kode_eselon', $billing->eselon->nama)->first();
-            $biayaAdm = ceil(($ref_adm->besar_fee / 100) * $totalEselon);
+            $biayaAdm = round(($ref_adm->besar_fee / 100) * $totalEselon);
+            $ref_disc = ReferensiDiscountSimrs::select(['kode_eselon', 'jenis_disc', 'discount'])
+                ->where('kode_eselon', $billing->eselon->nama)
+                ->where('jenis_disc', '6A')
+                ->where('ceklist', 'Y')
+                ->first();
+            if (in_array($billing->eselon->nama, ['PTPPNS', 'BRILIFMC'])) {
+                $biayaAdm = $biayaAdm - round($biayaAdm * ($ref_disc->discount / 100));
+            }
             if ($biayaAdm > $ref_adm->max_besar) {
                 $biayaAdm = $ref_adm->max_besar;
             }

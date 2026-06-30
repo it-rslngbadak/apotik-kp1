@@ -24,8 +24,9 @@ class BillingService
                 $tempBilling = new Billing(['no_registrasi' => $value->reg_no]);
                 $tempBilling->eslon_id = $eselon->id;
 
-                $totalBiayaEselon = (int)ceil($tempBilling->countTotalBiayaEselon());
-                $deposit          = (int)ceil($tempBilling->countDeposit());
+                // dd($tempBilling->countTotalBiayaEselon() . ' ' . $tempBilling->countDeposit());
+                $totalBiayaEselon = (int)round($tempBilling->countTotalBiayaEselon());
+                $deposit          = (int)round($tempBilling->countDeposit());
 
                 return [
                     'sp3_id'         => $sp3->id,
@@ -37,7 +38,7 @@ class BillingService
                     'tanggal_keluar' => $value->tanggal_registrasi,
                     'keterangan'     => $value->keterangan_batal,
                     'slug'           => $slug,
-                    'biaya_eselon'      => $totalBiayaEselon, // ← disimpan ke DB
+                    'biaya_eselon'    => $totalBiayaEselon, // ← disimpan ke DB
                     'biaya_deposit'   => $deposit,
                 ];
             })->toArray();
@@ -48,7 +49,7 @@ class BillingService
                     SUM(biaya_eselon) as total_eselon    
                 ')
                 ->first();
-            $totalTagihan = $sp3->jenis_sp3 === 'deposito' ? (int)ceil($billing->total_eselon) : (int)ceil($billing->total_eselon - $billing->total_deposit);
+            $totalTagihan = $sp3->jenis_sp3 === 'deposito' ? (int)round($billing->total_eselon) : (int)round($billing->total_eselon - $billing->total_deposit);
             $sp3->update([
                 'total_tagihan' => (int)$totalTagihan,
                 'total_kunjungan' => $sp3->total_kunjungan,
@@ -202,14 +203,13 @@ class BillingService
                 'tanggal_masuk'  => $deposit->update_date,
                 'tanggal_keluar' => $deposit->update_date,
                 'keterangan' => $deposit->keterangan,
-                'biaya_deposit' => (int) ceil($totalDeposit)
+                'biaya_deposit' => (int) round($totalDeposit)
             ];
             Billing::create($billingData);
             $sp3->refresh();
             $billings = $sp3->billings;
             $totalCob = $billings->sum(fn($b) => $b->cob);
             $totalDeposit = $billings->sum(fn($b) => $b->biaya_deposit);
-            $totalBiayaEselon = $billings->sum(fn($b) => $b->total_biaya_eselon);
             $totalTagihan = $totalDeposit - $totalCob;
             $sp3->update([
                 'total_tagihan' => $totalTagihan,
@@ -242,8 +242,8 @@ class BillingService
                 'tanggal_masuk'  => $mcu->tanggal_registrasi,
                 'tanggal_keluar' => $mcu->tanggal_registrasi,
                 'keterangan' => $mcu->keterangan,
-                'biaya_deposit' => (int) ceil($mcu->deposit),
-                'biaya_eselon' => (int) ceil($mcu->total_biaya_eselon)
+                'biaya_deposit' => (int) round($mcu->deposit),
+                'biaya_eselon' => (int) round($mcu->total_biaya_eselon)
             ];
             // dd($billingData);
             Billing::create($billingData);

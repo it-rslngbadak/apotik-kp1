@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Models\Eslon;
-use App\Models\Simrs\EselonSimrs;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -11,6 +10,8 @@ use Illuminate\Support\Str;
 class Sp3 extends Model
 {
     use HasFactory;
+
+    protected $connection = 'pgsql';
 
     protected $table = 'sp3s';
 
@@ -42,6 +43,7 @@ class Sp3 extends Model
         'is_approved_by_keuangan',
         'slug',
         'revisi',
+        'is_revisi',
         'alasan_rev'
     ];
 

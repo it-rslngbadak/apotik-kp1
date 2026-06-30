@@ -17,12 +17,12 @@
                     </div>
                 </div>
             </div>
-            <div class="row align-items-start mb-3">
+            {{-- <div class="row align-items-start mb-3">
                 <div class="col">
                     <a href="{{ route('sp3/detail', $billing->sp3->slug) }}" type="button" class="btn btn-primary"><i
                             class="fa fa-arrow-left" aria-hidden="true"></i> Kembali</a>
                 </div>
-            </div>
+            </div> --}}
             {{-- message --}}
             {{-- {!! Toastr::message() !!}
             <div class="student-group-form">
@@ -78,7 +78,7 @@
                                             <tr>
                                                 <td><b>Total Biaya Eselon</b></td>
                                                 <td>:
-                                                    <b>{{ 'Rp ' . number_format($billing->total_tagihan ?? $billing->total_biaya_eselon, 0, ',', '.') }}</b>
+                                                    <b>{{ 'Rp ' . number_format($billing->sp3->jenis_sp3 == 'deposito' ? $billing->biaya_deposit : $billing->biaya_eselon, 0, ',', '.') }}</b>
                                                 </td>
                                             </tr>
                                         </table>

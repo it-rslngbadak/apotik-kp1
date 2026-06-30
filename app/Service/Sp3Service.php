@@ -16,117 +16,149 @@ class Sp3Service
     {
         $draw            = $request->get('draw');
         $start           = $request->get("start");
-        $rowPerPage      = $request->get("length"); // total number of rows per page
+        $rowPerPage      = $request->get("length");
         $columnIndex_arr = $request->get('order');
         $columnName_arr  = $request->get('columns');
         $order_arr       = $request->get('order');
         $search_arr      = $request->get('search');
 
-        $columnIndex     = $columnIndex_arr[0]['column']; // Column index
-        $columnName      = $columnName_arr[$columnIndex]['data']; // Column name
-        $columnSortOrder = $order_arr[0]['dir']; // asc or desc
-        $searchValue     = $search_arr['value']; // Search value
+        $columnIndex     = $columnIndex_arr[0]['column'] ?? null;
+        $columnName      = $columnIndex !== null ? $columnName_arr[$columnIndex]['data'] : null;
+        $columnSortOrder = $order_arr[0]['dir'] ?? 'asc';
+        $searchValue     = strtoupper($search_arr['value']);
 
-        $dari_tgl    = $request->get('dari_tgl')
-            ? \Carbon\Carbon::createFromFormat('Y-m-d', $request->get('dari_tgl'))->startOfDay()
+
+        // ✅ Fix: parse format 'd-M-Y' sesuai output datetimepicker (contoh: 29-May-2025)
+        $dari_tgl = $request->get('dari_tgl')
+            ? \Carbon\Carbon::createFromFormat('d-m-Y', $request->get('dari_tgl'))->startOfDay()
             : \Carbon\Carbon::now()->subDays(30)->startOfDay();
 
-        $sampai_tgl  = $request->get('sampai_tgl')
-            ? \Carbon\Carbon::createFromFormat('Y-m-d', $request->get('sampai_tgl'))->endOfDay()
+        $sampai_tgl = $request->get('sampai_tgl')
+            ? \Carbon\Carbon::createFromFormat('d-m-Y', $request->get('sampai_tgl'))->endOfDay()
             : \Carbon\Carbon::now()->endOfDay();
+
+        $eselon_id = $request->get('filter_eselon') ? (int)$request->get('filter_eselon') : null;
+
+        // ✅ Closure filter reusable
+        $searchFilter = function ($query) use ($searchValue) {
+            $query->whereRaw('UPPER(no_surat_sp3) like ?', ['%' . $searchValue . '%'])
+                ->orWhereRaw('UPPER(nomor_tagihan) like ?', ['%' . $searchValue . '%'])
+                ->orWhereRaw('UPPER(ket_inv_pasien) like ?', ['%' . $searchValue . '%'])
+                ->orWhereRaw('UPPER(ket_inv_rs) like ?', ['%' . $searchValue . '%'])
+                ->orWhereRaw('UPPER(ket_pembayaran) like ?', ['%' . $searchValue . '%'])
+                ->orWhereRaw('UPPER(kota) like ?', ['%' . $searchValue . '%'])
+                ->orWhereRaw('UPPER(nama_rs) like ?', ['%' . $searchValue . '%'])
+                ->orWhereRaw('UPPER(dokter_rujukan) like ?', ['%' . $searchValue . '%']);
+        };
+
+        // ✅ Base query dengan filter tanggal (tgl_masuk & tgl_keluar)
+        $baseQuery = Sp3::whereBetween('tgl_sp3', [$dari_tgl, $sampai_tgl])
+            ->when($eselon_id, function ($query) use ($eselon_id) {
+                $query->where('eslon_id', $eselon_id); // ✅ filter hanya jika ada nilai
+            })
+            ->addSelect([
+                '*',
+                'total_kunjungan_sql' => \App\Models\Billing::selectRaw('COUNT(*)')
+                    ->whereColumn('sp3_id', 'sp3s.id'),
+                'total_pasien_sql' => \App\Models\Billing::selectRaw('COUNT(DISTINCT no_rm)')
+                    ->whereColumn('sp3_id', 'sp3s.id'),
+            ]);
+        // Jika ingin filter tgl_keluar juga, ganti/tambah:
+        // ->where('tgl_keluar', '<=', $sampai_tgl)
 
         $totalRecords = Sp3::count();
 
-        $totalRecordsWithFilter = Sp3::where(function ($query) use ($searchValue) {
-            $query->orWhere('no_surat_sp3', 'like', '%' . $searchValue . '%');
-            $query->orWhere('nomor_tagihan', 'like', '%' . $searchValue . '%');
-            $query->orWhere('ket_inv_pasien', 'like', '%' . $searchValue . '%');
-            $query->orWhere('ket_inv_rs', 'like', '%' . $searchValue . '%');
-            $query->orWhere('ket_pembayaran', 'like', '%' . $searchValue . '%');
-            $query->orWhere('kota', 'like', '%' . $searchValue . '%');
-            $query->orWhere('nama_rs', 'like', '%' . $searchValue . '%');
-            $query->orWhere('dokter_rujukan', 'like', '%' . $searchValue . '%');
-        })->count();
+        $totalRecordsWithFilter = (clone $baseQuery)
+            ->where($searchFilter)
+            ->count();
 
-        $records = Sp3::with('eselon')
-            // ->orderBy('is_approved_by_verifikator', 'ASC')
-            // ->whereBetween('tgl_masuk', [$dari_tgl, $sampai_tgl])
-            ->orderBy('created_at', 'DESC')
+        $query = (clone $baseQuery)
+            ->with('eselon')
+            ->where($searchFilter);
+
+        if ($columnName) {
+            $query->orderBy($columnName, $columnSortOrder);
+        }
+
+        $records = $query
             ->orderBy('no_surat_sp3', 'DESC')
-            ->orderBy($columnName, $columnSortOrder)
-            ->where(function ($query) use ($searchValue) {
-                $query->orWhere('no_surat_sp3', 'like', '%' . $searchValue . '%');
-                $query->orWhere('nomor_tagihan', 'like', '%' . $searchValue . '%');
-                $query->orWhere('ket_inv_pasien', 'like', '%' . $searchValue . '%');
-                $query->orWhere('ket_inv_rs', 'like', '%' . $searchValue . '%');
-                $query->orWhere('ket_pembayaran', 'like', '%' . $searchValue . '%');
-                $query->orWhere('kota', 'like', '%' . $searchValue . '%');
-                $query->orWhere('nama_rs', 'like', '%' . $searchValue . '%');
-                $query->orWhere('dokter_rujukan', 'like', '%' . $searchValue . '%');
-            })
+            ->orderBy('created_at', 'DESC')
             ->skip($start)
             ->take($rowPerPage)
             ->get();
+
         $data_arr = [];
 
-        foreach ($records as $key => $record) {
-            $status = $record->is_approved_by_verifikator ? '<span class="badge bg-success">Terverifikasi</span>' : '<span class="badge bg-secondary">Belum Terverifikasi</span>';
+        foreach ($records as $record) {
+            if ($record->revisi == 0) {
+                $status = $record->is_approved_by_verifikator
+                    ? '<span class="badge bg-success">Terverifikasi</span>'
+                    : '<span class="badge bg-secondary">Belum Terverifikasi</span>';
+            } else {
+                $status = $record->is_revisi
+                    ? '<span class="badge bg-warning">' . $record->alasan_rev . '</span>'
+                    : ($record->is_approved_by_verifikator
+                        ? '<span class="badge bg-success">Terverifikasi</span>'
+                        : '<span class="badge bg-secondary">Belum Terverifikasi</span>');
+            }
             $modify = '
-                <td class="text-end"> 
-                    <div class="actions">
-                        <a href="' . url('sp3-verifikasi/detail/' . $record->slug) . '" class="btn btn-sm bg-success-light">
-                            <i class="far fa-eye me-2"></i>
-                        </a>
-                        ' . ($record->is_approved_by_verifikator != true ? '
-                        <a href="' . url('sp3-verifikasi/edit/' . $record->slug) . '" class="btn btn-sm bg-danger-light">
-                            <i class="far fa-edit me-2"></i>
-                        </a> 
-                        <a class="btn btn-sm bg-danger-light delete slug" data-bs-toggle="modal" data-slug="' . $record->slug . '" data-bs-target="#delete">
+            <td class="text-end">
+                <div class="actions">
+                    <a href="' . url('sp3-verifikasi/detail/' . $record->slug) . '" class="btn btn-sm bg-success-light">
+                        <i class="far fa-eye me-2"></i>
+                    </a>
+                    ' . ($record->is_approved_by_verifikator != true ? '
+                    <a href="' . url('sp3-verifikasi/edit/' . $record->slug) . '" class="btn btn-sm bg-danger-light">
+                        <i class="far fa-edit me-2"></i>
+                    </a>
+                    <a class="btn btn-sm bg-danger-light delete slug" data-bs-toggle="modal" data-slug="' . $record->slug . '" data-bs-target="#delete">
                         <i class="fe fe-trash-2"></i>
-                        </a>' : '') . ($record->is_approved_by_verifikator != true ? '
-                        <a href="#" class="btn btn-sm bg-success-light btn-approve" data-url="' . url('/sp3/approve/' . $record->slug) . '">
-                            <i class="fa fa-check me-2"></i>
-                        </a>' : '<a href="#" 
-                                data-url="' . url('/sp3/unapprove/' . $record->slug) . '" 
-                                class="btn btn-sm bg-success-light btn-unapprove">
-                                    <i class="fa fa-times me-2"></i>
-                            </a>') . '
-                        ' . ($record->is_approved_by_verifikator == true ? '
-                        <a href="' . url('/sp3/' . $record->slug . '/preview') . '" class="btn btn-sm bg-success-light">
-                            <i class="fa fa-print me-2"></i>
-                        </a>' : '') . '
-                    </div>
-                </td>
-            ';
-            // dd($record);
+                    </a>
+                    <a href="#" class="btn btn-sm bg-success-light btn-approve" data-url="' . url('/sp3/approve/' . $record->slug) . '">
+                        <i class="fa fa-check me-2"></i>
+                    </a>' : '
+                    <a href="#" data-url="' . url('/sp3/unapprove/' . $record->slug) . '" class="btn btn-sm bg-success-light btn-unapprove">
+                        <i class="fa fa-times me-2"></i>
+                    </a>') . '
+                    ' . ($record->is_approved_by_verifikator == true ? '
+                    <a href="' . url('/sp3/' . $record->slug . '/preview') . '" class="btn btn-sm bg-success-light">
+                        <i class="fa fa-print me-2"></i>
+                    </a>' : '') . '
+                </div>
+            </td>
+        ';
+
             $data_arr[] = [
-                "no_sp3"         => $record->no_surat_sp3 ?? '-',
-                "tgl_sp3"     => \Carbon\Carbon::parse($record->tgl_sp3)->translatedFormat('d M Y'),
-                "nomor_tagihan"    => $record->nomor_tagihan,
-                "tgl_terima_keu"    => $record->tgl_terima_keu ? \Carbon\Carbon::parse($record->tgl_terima_keu)->translatedFormat('d M Y') : '-',
-                "perihal_tagihan"    => $record->perihalTagihan->kode,
-                "ket_inv_pasien"    => $record->ket_inv_pasien,
-                "ket_inv_rs"    => $record->ket_inv_rs,
-                "eselon"    => $record->eselon->nama,
-                "jumlah_pasien"    => $record->pasien ?? $record->total_pasien,
-                "jumlah_kunjungan"    => $record->kunjungan ?? $record->total_kunjungan,
-                "ket_pembayaran"    => $record->ket_pembayaran,
-                "layanan"    => $record->layanan->nama,
-                "tgl_berobat"     => $record->tgl_masuk && $record->tgl_keluar ? \Carbon\Carbon::parse($record->tgl_masuk)->translatedFormat('d M Y')
-                    . ' - ' . \Carbon\Carbon::parse($record->tgl_keluar)->translatedFormat('d M Y') : null,
-                "total_tagihan"    => 'Rp ' . number_format($record->total_tagihan, 0, ',', '.'),
-                "status"         => $status,
-                "modify"         => $modify,
+                "no_sp3"          => $record->no_surat_sp3 ?? '-',
+                "tgl_sp3"         => \Carbon\Carbon::parse($record->tgl_sp3)->translatedFormat('d M Y'),
+                "nomor_tagihan"   => $record->nomor_tagihan,
+                "tgl_terima_keu"  => $record->tgl_terima_keu
+                    ? \Carbon\Carbon::parse($record->tgl_terima_keu)->translatedFormat('d M Y')
+                    : '-',
+                "perihal_tagihan_id" => $record->perihalTagihan->kode,
+                "ket_inv_pasien"  => $record->ket_inv_pasien,
+                "ket_inv_rs"      => $record->ket_inv_rs,
+                "eslon_id"          => $record->eselon->nama,
+                "total_pasien_sql"   => $record->pasien ?? $record->total_pasien,
+                "total_kunjungan_sql" => $record->kunjungan ?? $record->total_kunjungan,
+                "ket_pembayaran"  => $record->ket_pembayaran,
+                "layanan_id"         => $record->layanan->nama,
+                "tgl_berobat"     => $record->tgl_masuk && $record->tgl_keluar
+                    ? \Carbon\Carbon::parse($record->tgl_masuk)->translatedFormat('d M Y')
+                    . ' - ' . \Carbon\Carbon::parse($record->tgl_keluar)->translatedFormat('d M Y')
+                    : '-',
+                "total_tagihan"   => 'Rp ' . number_format($record->total_tagihan, 0, ',', '.'),
+                "status"          => $status,
+                "modify"          => $modify,
             ];
         }
 
-        $response = [
+        return [
             "draw"                 => intval($draw),
             "iTotalRecords"        => $totalRecords,
             "iTotalDisplayRecords" => $totalRecordsWithFilter,
-            "data"               => $data_arr
+            "data"                 => $data_arr,
         ];
-        return $response;
     }
 
     public static function getSp3KeuData($request)
@@ -139,53 +171,67 @@ class Sp3Service
         $order_arr       = $request->get('order');
         $search_arr      = $request->get('search');
 
-        $columnIndex     = $columnIndex_arr[0]['column']; // Column index
-        $columnName      = $columnName_arr[$columnIndex]['data']; // Column name
-        $columnSortOrder = $order_arr[0]['dir']; // asc or desc
-        $searchValue     = $search_arr['value']; // Search value
+        $columnIndex     = $columnIndex_arr[0]['column'] ?? null;
+        $columnName      = $columnIndex !== null ? $columnName_arr[$columnIndex]['data'] : null;
+        $columnSortOrder = $order_arr[0]['dir'] ?? 'asc';
+        $searchValue     = strtoupper($search_arr['value']);
 
-        $dari_tgl    = $request->get('dari_tgl')
-            ? \Carbon\Carbon::createFromFormat('Y-m-d', $request->get('dari_tgl'))->startOfDay()
+        $dari_tgl = $request->get('dari_tgl')
+            ? \Carbon\Carbon::createFromFormat('d-m-Y', $request->get('dari_tgl'))->startOfDay()
             : \Carbon\Carbon::now()->subDays(30)->startOfDay();
 
-        $sampai_tgl  = $request->get('sampai_tgl')
-            ? \Carbon\Carbon::createFromFormat('Y-m-d', $request->get('sampai_tgl'))->endOfDay()
+        $sampai_tgl = $request->get('sampai_tgl')
+            ? \Carbon\Carbon::createFromFormat('d-m-Y', $request->get('sampai_tgl'))->endOfDay()
             : \Carbon\Carbon::now()->endOfDay();
+
+        $eselon_id = $request->get('filter_eselon') ? (int)$request->get('filter_eselon') : null;
+
+        // ✅ Closure filter reusable
+        $searchFilter = function ($query) use ($searchValue) {
+            $query->whereRaw('UPPER(no_surat_sp3) like ?', ['%' . $searchValue . '%'])
+                ->orWhereRaw('UPPER(nomor_tagihan) like ?', ['%' . $searchValue . '%'])
+                ->orWhereRaw('UPPER(ket_inv_pasien) like ?', ['%' . $searchValue . '%'])
+                ->orWhereRaw('UPPER(ket_inv_rs) like ?', ['%' . $searchValue . '%'])
+                ->orWhereRaw('UPPER(ket_pembayaran) like ?', ['%' . $searchValue . '%'])
+                ->orWhereRaw('UPPER(kota) like ?', ['%' . $searchValue . '%'])
+                ->orWhereRaw('UPPER(nama_rs) like ?', ['%' . $searchValue . '%'])
+                ->orWhereRaw('UPPER(dokter_rujukan) like ?', ['%' . $searchValue . '%']);
+        };
+
+        $baseQuery = Sp3::where('is_approved_by_verifikator', true)
+            ->whereBetween('tgl_sp3', [$dari_tgl, $sampai_tgl])
+            ->when($eselon_id, function ($query) use ($eselon_id) {
+                $query->where('eslon_id', $eselon_id); // ✅ filter hanya jika ada nilai
+            })
+            ->addSelect([
+                '*',
+                'total_kunjungan_sql' => \App\Models\Billing::selectRaw('COUNT(*)')
+                    ->whereColumn('sp3_id', 'sp3s.id'),
+                'total_pasien_sql' => \App\Models\Billing::selectRaw('COUNT(DISTINCT no_rm)')
+                    ->whereColumn('sp3_id', 'sp3s.id'),
+            ]);
 
         $totalRecords = Sp3::where('is_approved_by_verifikator', true)->count();
 
-        $totalRecordsWithFilter = Sp3::where('is_approved_by_verifikator', true)
-            ->where(function ($query) use ($searchValue) {
-                $query->orWhere('no_surat_sp3', 'like', '%' . $searchValue . '%');
-                $query->orWhere('nomor_tagihan', 'like', '%' . $searchValue . '%');
-                $query->orWhere('ket_inv_pasien', 'like', '%' . $searchValue . '%');
-                $query->orWhere('ket_inv_rs', 'like', '%' . $searchValue . '%');
-                $query->orWhere('ket_pembayaran', 'like', '%' . $searchValue . '%');
-                $query->orWhere('kota', 'like', '%' . $searchValue . '%');
-                $query->orWhere('nama_rs', 'like', '%' . $searchValue . '%');
-                $query->orWhere('dokter_rujukan', 'like', '%' . $searchValue . '%');
-            })->count();
+        $totalRecordsWithFilter = (clone $baseQuery)
+            ->where($searchFilter)
+            ->count();
 
-        $records = Sp3::with('eselon')
-            ->where('is_approved_by_verifikator', true)
-            // ->orderBy('is_approved_by_verifikator', 'ASC')
-            // ->whereBetween('tgl_masuk', [$dari_tgl, $sampai_tgl])
-            ->orderBy('created_at', 'DESC')
+        $query = (clone $baseQuery)
+            ->with('eselon')
+            ->where($searchFilter);
+
+        if ($columnName) {
+            $query->orderBy($columnName, $columnSortOrder);
+        }
+
+        $records = $query
             ->orderBy('no_surat_sp3', 'DESC')
-            ->orderBy($columnName, $columnSortOrder)
-            ->where(function ($query) use ($searchValue) {
-                $query->orWhere('no_surat_sp3', 'like', '%' . $searchValue . '%');
-                $query->orWhere('nomor_tagihan', 'like', '%' . $searchValue . '%');
-                $query->orWhere('ket_inv_pasien', 'like', '%' . $searchValue . '%');
-                $query->orWhere('ket_inv_rs', 'like', '%' . $searchValue . '%');
-                $query->orWhere('ket_pembayaran', 'like', '%' . $searchValue . '%');
-                $query->orWhere('kota', 'like', '%' . $searchValue . '%');
-                $query->orWhere('nama_rs', 'like', '%' . $searchValue . '%');
-                $query->orWhere('dokter_rujukan', 'like', '%' . $searchValue . '%');
-            })
+            ->orderBy('created_at', 'DESC')
             ->skip($start)
             ->take($rowPerPage)
             ->get();
+
         $data_arr = [];
 
         foreach ($records as $key => $record) {
@@ -225,14 +271,14 @@ class Sp3Service
                 "tgl_sp3"          => \Carbon\Carbon::parse($record->tgl_sp3)->translatedFormat('d M Y'),
                 "nomor_tagihan"    => $record->nomor_tagihan,
                 "tgl_terima_keu"    => $record->tgl_terima_keu ? \Carbon\Carbon::parse($record->tgl_terima_keu)->translatedFormat('d M Y') : '-',
-                "perihal_tagihan"  => $record->perihalTagihan->kode,
+                "perihal_tagihan_id"  => $record->perihalTagihan->kode,
                 "ket_inv_pasien"   => $record->ket_inv_pasien,
                 "ket_inv_rs"       => $record->ket_inv_rs,
-                "eselon"           => $record->eselon->nama,
-                "jumlah_pasien"    => $record->pasien ?? $record->total_pasien,
-                "jumlah_kunjungan" => $record->kunjungan ?? $record->total_kunjungan,
+                "eslon_id"           => $record->eselon->nama,
+                "total_pasien_sql"   => $record->pasien ?? $record->total_pasien,
+                "total_kunjungan_sql" => $record->kunjungan ?? $record->total_kunjungan,
                 "ket_pembayaran"   => $record->ket_pembayaran,
-                "layanan"          => $record->layanan->nama,
+                "layanan_id"          => $record->layanan->nama,
                 "tgl_berobat"      => $record->tgl_masuk && $record->tgl_keluar
                     ? \Carbon\Carbon::parse($record->tgl_masuk)->translatedFormat('d M Y')
                     . ' - '
@@ -437,11 +483,8 @@ class Sp3Service
                 'kota' => $data['kota'],
                 'nama_rs' => $data['nama_rs'],
                 'dokter_rujukan' => $data['dokter_rujukan'] ?? null,
-                'kunjungan' => $data['kunjungan'] ?? null,
-                'pasien' => $data['pasien'] ?? null,
                 'tgl_masuk' => $data['tgl_masuk'],
                 'tgl_keluar' => $data['tgl_keluar'],
-                'total_tagihan' => $data['total_tagihan'] ?? 0,
                 'keterangan' => $data['keterangan'],
             ]);
             Log::info('SP3 updated: ' . $sp3->id);
@@ -479,11 +522,8 @@ class Sp3Service
                 'kota' => $data['kota'],
                 'nama_rs' => $data['nama_rs'],
                 'dokter_rujukan' => $data['dokter_rujukan'] ?? null,
-                'kunjungan' => $data['kunjungan'] ?? null,
-                'pasien' => $data['pasien'] ?? null,
                 'tgl_masuk' => $data['tgl_masuk'],
                 'tgl_keluar' => $data['tgl_keluar'],
-                'total_tagihan' => $data['total_tagihan'] ?? 0,
                 'keterangan' => $data['keterangan'],
             ]);
             Log::info('SP3 updated: ' . $sp3->id);
@@ -538,13 +578,15 @@ class Sp3Service
             $no_surat_sp3 = str_pad($no_sp3, 4, '0', STR_PAD_LEFT) . '-V/RSBDK1100/' . now()->year . '-S2';
             if ($sp3->no_surat_sp3) {
                 $sp3->update([
-                    'is_approved_by_verifikator' => true
+                    'is_approved_by_verifikator' => true,
+                    'is_revisi' => false
                 ]);
             } else {
                 $sp3->update([
                     'no_sp3' => $no_sp3,
                     'no_surat_sp3' => $no_surat_sp3,
-                    'is_approved_by_verifikator' => true
+                    'is_approved_by_verifikator' => true,
+                    'is_revisi' => false,
                 ]);
             }
             DB::commit();
@@ -609,23 +651,26 @@ class Sp3Service
 
     public static function revisiSp3($sp3, $request)
     {
-        $validated = $request->validate([
-            'alasan_rev' => 'required|string',
-        ]);
-        if (!$validated) {
-            return [
-                'status' => 'failed',
-                'message' => 'Alasan revisi harus diisi'
-            ];
-        }
-
         DB::beginTransaction();
         try {
+            $validated = $request->validate([
+                'alasan_rev' => 'required|string',
+            ], [
+                'alasan_rev.required' => 'Alasan revisi harus diisi',
+                'alasan_rev.string' => 'Alasan revisi harus berupa string',
+            ]);
+            if (!$validated) {
+                return [
+                    'status' => 'failed',
+                    'message' => $validated->errors()->first()
+                ];
+            }
             $sp3->update([
                 'revisi' => $sp3->revisi + 1,
                 'alasan_rev' => $validated['alasan_rev'],
                 'tgl_terima_keu' => null,
-                'is_approved_by_verifikator' => false
+                'is_approved_by_verifikator' => false,
+                'is_revisi' => true
             ]);
             DB::commit();
             return [
@@ -634,6 +679,7 @@ class Sp3Service
             ];
         } catch (\Throwable $th) {
             DB::rollBack();
+            Log::error('Error revisi Sp3: ' . $th->getMessage());
             return [
                 'status' => 'failed',
                 'message' => $th->getMessage()

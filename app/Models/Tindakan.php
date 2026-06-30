@@ -10,6 +10,8 @@ class Tindakan extends Model
 {
     use HasFactory;
 
+    protected $connection = 'pgsql';
+
     protected $table = 'tindakans';
 
     protected $fillable = [
@@ -26,11 +28,11 @@ class Tindakan extends Model
         'total_biaya'
     ];
 
-    public function getTotalBiayaAttribute()
+    public function getTotalBiayaAttribute(): int
     {
         $total = $this->jumlah * $this->biaya;
-        $discount = $total * ($this->discount / 100);
-        $total_biaya = $total - $discount;
+        $discount = (int) round($total * ((int) $this->discount / 100));
+        $total_biaya = (int) round($total - $discount);
         return $total_biaya;
     }
 

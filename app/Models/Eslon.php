@@ -10,6 +10,8 @@ class Eslon extends Model
 {
     use HasFactory;
 
+    protected $connection = 'pgsql';
+
     protected $table = 'eslons';
 
     protected $fillable = [
@@ -38,9 +40,10 @@ class Eslon extends Model
         $count = 1;
 
         while (static::where('slug', $slug)
-            ->when($ignoreId, fn ($query) => $query->where('id', '!=', $ignoreId))
-            ->exists()) {
-            $slug = $original.'-'.$count++;
+            ->when($ignoreId, fn($query) => $query->where('id', '!=', $ignoreId))
+            ->exists()
+        ) {
+            $slug = $original . '-' . $count++;
         }
 
         return $slug;
@@ -51,8 +54,8 @@ class Eslon extends Model
         return 'slug';
     }
 
-    public function sp3s(){
+    public function sp3s()
+    {
         return $this->hasMany(Sp3::class, 'eslon_id', 'id');
     }
-
 }

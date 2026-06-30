@@ -10,9 +10,11 @@ class Layanan extends Model
 {
     use HasFactory;
 
+    protected $connection = 'pgsql';
+
     protected $table = 'layanans';
 
-    protected $fillable = ['nama','slug'];
+    protected $fillable = ['nama', 'slug'];
 
     protected static function booted()
     {
@@ -34,9 +36,10 @@ class Layanan extends Model
         $count = 1;
 
         while (static::where('slug', $slug)
-            ->when($ignoreId, fn ($query) => $query->where('id', '!=', $ignoreId))
-            ->exists()) {
-            $slug = $original.'-'.$count++;
+            ->when($ignoreId, fn($query) => $query->where('id', '!=', $ignoreId))
+            ->exists()
+        ) {
+            $slug = $original . '-' . $count++;
         }
 
         return $slug;
@@ -47,7 +50,8 @@ class Layanan extends Model
         return 'slug';
     }
 
-    public function subLayanans(){
-        return $this->hasMany(SubLayanan::class,'layanan_id','id');
+    public function subLayanans()
+    {
+        return $this->hasMany(SubLayanan::class, 'layanan_id', 'id');
     }
 }

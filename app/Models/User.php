@@ -17,6 +17,9 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
+
+    protected $connection = 'pgsql';
+
     protected $fillable = [
         'user_id',
         'name',

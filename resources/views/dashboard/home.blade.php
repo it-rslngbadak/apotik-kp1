@@ -28,7 +28,7 @@
                                     <h3>{{ $sp3s->count() }}</h3>
                                 </div>
                                 <div class="db-icon">
-                                    <img src="{{ URL::to('assets/img/icons/dash-icon-01.svg') }}" alt="Dashboard Icon">
+                                    <img src="{{ URL::to('assets/img/icons/student-icon-01.svg') }}" alt="Dashboard Icon">
                                 </div>
                             </div>
                         </div>
@@ -43,7 +43,7 @@
                                     <h3>{{ $billings->count() }}</h3>
                                 </div>
                                 <div class="db-icon">
-                                    <img src="{{ URL::to('assets/img/icons/dash-icon-02.svg') }}" alt="Dashboard Icon">
+                                    <img src="{{ URL::to('assets/img/icons/teacher-icon-02.svg') }}" alt="Dashboard Icon">
                                 </div>
                             </div>
                         </div>
