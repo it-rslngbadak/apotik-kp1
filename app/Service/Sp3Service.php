@@ -52,7 +52,8 @@ class Sp3Service
         };
 
         // ✅ Base query dengan filter tanggal (tgl_masuk & tgl_keluar)
-        $baseQuery = Sp3::whereBetween('tgl_sp3', [$dari_tgl, $sampai_tgl])
+        $baseQuery = Sp3::where('tgl_masuk', '>=', $dari_tgl)
+            ->where('tgl_keluar', '<=', $sampai_tgl)
             ->when($eselon_id, function ($query) use ($eselon_id) {
                 $query->where('eslon_id', $eselon_id); // ✅ filter hanya jika ada nilai
             })
@@ -199,7 +200,8 @@ class Sp3Service
         };
 
         $baseQuery = Sp3::where('is_approved_by_verifikator', true)
-            ->whereBetween('tgl_sp3', [$dari_tgl, $sampai_tgl])
+            ->where('tgl_masuk', '>=', $dari_tgl)
+            ->where('tgl_keluar', '<=', $sampai_tgl)
             ->when($eselon_id, function ($query) use ($eselon_id) {
                 $query->where('eslon_id', $eselon_id); // ✅ filter hanya jika ada nilai
             })
