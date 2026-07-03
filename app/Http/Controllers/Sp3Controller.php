@@ -653,7 +653,10 @@ class Sp3Controller extends Controller
             'filter_eselon' => (int)$request->get('filter_eselon'),
         ]);
         $response = Sp3Service::getSp3VerifikasiData($request);
-        return response()->json($response);
+        return response()->json($response)
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');;
     }
 
     public function getSp3KeuanganData(Request $request)
