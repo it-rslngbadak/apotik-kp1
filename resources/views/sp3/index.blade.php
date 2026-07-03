@@ -191,6 +191,7 @@
                 order: [],
                 ajax: {
                     url: "{{ route('get-sp3-verifikasi-data') }}",
+                    cache: false,
                     data: function(d) {
                         d.dari_tgl = $('#filter_dari_tgl').val();
                         d.sampai_tgl = $('#filter_sampai_tgl').val();
