@@ -120,7 +120,7 @@ class Billing extends Model
             // ->where('payment', NULL)
             ->get();
         $dataEmbalace = [];
-
+        // dd($tindakan->sum('total_biaya') . ' ' . $alkes->sum('total_biaya') . ' ' . $resepRawatJalan->sum('total_biaya') . ' ' . $resepRawatInap->sum('total_biaya') . ' ' . $kamar->sum('total_biaya') . ' ' . $dataEmbalace['ppn']);
         if ($embalace->count() == 0) {
             $dataEmbalace['ppn'] = $resepRawatJalan->sum(fn($b) => round($b->harga_jual) * $b->jumlah_dijual) * (11 / 100);
         } else {
@@ -130,7 +130,6 @@ class Billing extends Model
         $ketKamar = $kamar->filter(function ($item) {
             return str_contains(strtolower($item->keterangan), 'meninggal');
         })->count();
-        // dd($tindakan->sum('total_biaya') . ' ' . $alkes->sum('total_biaya') . ' ' . $resepRawatJalan->sum('total_biaya') . ' ' . $resepRawatInap->sum('total_biaya') . ' ' . $kamar->sum('total_biaya') . ' ' . $dataEmbalace['ppn']);
         if (($resepRawatInap->count() > 0 || $kamar->count() > 0) && !($ketKamar > 0) && !($this->eselon->nama == 'DNPPKB')) {
             $ref_adm = ReferensiAdmSimrs::select(['besar_fee', 'max_besar'])->where('kode_eselon', $this->eselon->nama)->first();
             $biayaAdm = round($totalEselon * ($ref_adm->besar_fee / 100));
@@ -140,17 +139,14 @@ class Billing extends Model
                 ->where('ceklist', 'Y')
                 ->first();
             if (in_array($this->eselon->nama, ['PTPPNS', 'BRILIFMC'])) {
-                $biayaAdm = $biayaAdm - round($biayaAdm * ($ref_disc->discount / 100));
-                // if ($this->no_registrasi == 'A052605370') {
-                //     dd($biayaAdm);
-                // }
-                // dd($billing->eselon->nama);
-            }
-            $total = $totalEselon + $biayaAdm;
-            if ($biayaAdm > $ref_adm->max_besar) {
-                $totalEselon = $totalEselon + ($ref_adm->max_besar);
-            } else {
-                $totalEselon = $total;
+                if ($biayaAdm >= $ref_adm->max_besar) {
+                    $biayaAdm = $ref_adm->max_besar;
+                    $totalBiayaAdm = $biayaAdm - round($biayaAdm * ($ref_disc->discount / 100));
+                    $totalEselon = $totalEselon + $totalBiayaAdm;
+                } else {
+                    $totalBiayaAdm = $biayaAdm - round($biayaAdm * ($ref_disc->discount / 100));
+                    $totalEselon = $totalEselon + $totalBiayaAdm;
+                }
             }
         }
 

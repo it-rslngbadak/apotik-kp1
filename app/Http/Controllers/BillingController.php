@@ -94,10 +94,10 @@ class BillingController extends Controller
                 ->where('ceklist', 'Y')
                 ->first();
             if (in_array($billing->eselon->nama, ['PTPPNS', 'BRILIFMC'])) {
-                $biayaAdm = $biayaAdm - round($biayaAdm * ($ref_disc->discount / 100));
-            }
-            if ($biayaAdm > $ref_adm->max_besar) {
-                $biayaAdm = $ref_adm->max_besar;
+                if ($biayaAdm > $ref_adm->max_besar) {
+                    $biayaAdm = $ref_adm->max_besar;
+                    $biayaAdm = $biayaAdm - round($biayaAdm * ($ref_disc->discount / 100));
+                }
             }
             $dataBiayaAdm = [
                 'nama_tindakan' => $ref_adm->deskripsi,
