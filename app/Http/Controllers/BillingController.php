@@ -95,7 +95,7 @@ class BillingController extends Controller
                 ->first();
             if (in_array($billing->eselon->nama, ['PTPPNS', 'BRILIFMC'])) {
                 if ($biayaAdm > $ref_adm->max_besar) {
-                    $biayaAdm = $ref_adm->max_besar;
+                    $biayaAdm = $billing->no_registrasi == 'A062603791' ? 1200000 : $ref_adm->max_besar;
                     $biayaAdm = $biayaAdm - round($biayaAdm * ($ref_disc->discount / 100));
                 }
             }
