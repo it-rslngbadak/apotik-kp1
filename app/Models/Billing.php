@@ -142,13 +142,14 @@ class Billing extends Model
                 if ($biayaAdm >= $ref_adm->max_besar) {
                     $biayaAdm = $this->no_registrasi == 'A062603791' ? 1200000 : $ref_adm->max_besar;
                     $totalBiayaAdm = $biayaAdm - round($biayaAdm * ($ref_disc->discount / 100));
-                    $totalEselon = $totalEselon + $totalBiayaAdm;
                 } else {
                     $totalBiayaAdm = $biayaAdm - round($biayaAdm * ($ref_disc->discount / 100));
                 }
+                $totalEselon = $totalEselon + $totalBiayaAdm;
+            } else {
+                $totalEselon = $totalEselon + $totalBiayaAdm;
             }
-            // dd($tindakan->sum('total_biaya') . ' ' . $alkes->sum('total_biaya') . ' ' . $resepRawatJalan->sum('total_biaya') . ' ' . $resepRawatInap->sum('total_biaya') . ' ' . $kamar->sum('total_biaya') . ' ' . $dataEmbalace['ppn'] . ' ' . $totalBiayaAdm . ' ' . $totalEselon . ' ' . round($totalEselon * ($ref_adm->besar_fee / 100)));
-            $totalEselon = $totalEselon + $totalBiayaAdm;
+            // dd($tindakan->sum('total_biaya') . ' ' . $alkes->sum('total_biaya') . ' ' . $resepRawatJalan->sum('total_biaya') . ' ' . $resepRawatInap->sum('total_biaya') . ' ' . $kamar->sum('total_biaya') . ' ' . $dataEmbalace['ppn'] . ' ' . $totalBiayaAdm . ' ' . $totalEselon . ' ' . round($totalEselon * ($ref_adm->besar_fee / 100)) . ' ' . round($biayaAdm * ($ref_disc->discount / 100)));
         }
 
         return $totalEselon;
