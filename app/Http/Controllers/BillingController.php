@@ -7,6 +7,7 @@ use App\Http\Requests\BillingRequest;
 use App\Models\Billing;
 use App\Models\Eslon;
 use App\Models\Layanan;
+use App\Models\Simrs\BillingNonKasEnamSimrs;
 use App\Models\Simrs\DepositKamarSimrs;
 use App\Models\Simrs\KipKirimanSimrs;
 use App\Models\Simrs\ReferensiAdmSimrs;
@@ -86,21 +87,26 @@ class BillingController extends Controller
         })->count();
         $dataBiayaAdm = [];
         if (($resepRawatInap->count() > 0 || $kamar->count() > 0) && !($ketKamar > 0) && !($billing->eselon->nama == 'DNPPKB')) {
-            $ref_adm = ReferensiAdmSimrs::select(['besar_fee', 'max_besar'])->where('kode_eselon', $billing->eselon->nama)->first();
-            $biayaAdm = round(($ref_adm->besar_fee / 100) * $totalEselon);
-            $ref_disc = ReferensiDiscountSimrs::select(['kode_eselon', 'jenis_disc', 'discount'])
-                ->where('kode_eselon', $billing->eselon->nama)
-                ->where('jenis_disc', '6A')
-                ->where('ceklist', 'Y')
+            $billingCreated = BillingNonKasEnamSimrs::select(['tanggal', 'total', 'total_disc'])
+                ->where('kode_transaksi', '000002')
+                ->where('reg_no', $billing->no_registrasi)
                 ->first();
-            if (in_array($billing->eselon->nama, ['PTPPNS', 'BRILIFMC'])) {
-                if ($biayaAdm > $ref_adm->max_besar) {
-                    $biayaAdm = $billing->no_registrasi == 'A062603791' ? 1200000 : $ref_adm->max_besar;
-                    $biayaAdm = $biayaAdm - round($biayaAdm * ($ref_disc->discount / 100));
-                }
-            }
+            $biayaAdm = $billingCreated ? $billingCreated->total - $billingCreated->total_disc : 0;
+            // $ref_adm = ReferensiAdmSimrs::select(['besar_fee', 'max_besar'])->where('kode_eselon', $billing->eselon->nama)->first();
+            // $biayaAdm = round(($ref_adm->besar_fee / 100) * $totalEselon);
+            // $ref_disc = ReferensiDiscountSimrs::select(['kode_eselon', 'jenis_disc', 'discount'])
+            //     ->where('kode_eselon', $billing->eselon->nama)
+            //     ->where('jenis_disc', '6A')
+            //     ->where('ceklist', 'Y')
+            //     ->first();
+            // if (in_array($billing->eselon->nama, ['PTPPNS', 'BRILIFMC'])) {
+            //     if ($biayaAdm > $ref_adm->max_besar) {
+            //         $biayaAdm = $billing->no_registrasi == 'A062603791' ? 1200000 : $ref_adm->max_besar;
+            //         $biayaAdm = $biayaAdm - round($biayaAdm * ($ref_disc->discount / 100));
+            //     }
+            // }
             $dataBiayaAdm = [
-                'nama_tindakan' => $ref_adm->deskripsi,
+                'nama_tindakan' => 'Biaya Administrasi',
                 'jumlah' => 1,
                 'biaya' => $biayaAdm,
             ];

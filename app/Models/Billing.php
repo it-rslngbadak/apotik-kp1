@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Simrs\BillingNonKasEnamSimrs;
 use App\Models\Simrs\DepositKamarSimrs;
 use App\Models\Simrs\KipKirimanSimrs;
 use App\Models\Simrs\ReferensiAdmSimrs;
@@ -130,25 +131,41 @@ class Billing extends Model
             return str_contains(strtolower($item->keterangan), 'meninggal');
         })->count();
         if (($resepRawatInap->count() > 0 || $kamar->count() > 0) && !($ketKamar > 0) && !($this->eselon->nama == 'DNPPKB')) {
-            $ref_adm = ReferensiAdmSimrs::select(['besar_fee', 'max_besar'])->where('kode_eselon', $this->eselon->nama)->first();
-            $biayaAdm = round($totalEselon * ($ref_adm->besar_fee / 100));
-            $ref_disc = ReferensiDiscountSimrs::select(['kode_eselon', 'jenis_disc', 'discount'])
-                ->where('kode_eselon', $this->eselon->nama)
-                ->where('jenis_disc', '6A')
-                ->where('ceklist', 'Y')
+            $billingCreated = BillingNonKasEnamSimrs::select(['tanggal', 'total', 'total_disc'])
+                ->where('kode_transaksi', '000002')
+                ->where('reg_no', $this->no_registrasi)
                 ->first();
-            $totalBiayaAdm = $biayaAdm;
-            if (in_array($this->eselon->nama, ['PTPPNS', 'BRILIFMC'])) {
-                if ($biayaAdm >= $ref_adm->max_besar) {
-                    $biayaAdm = $this->no_registrasi == 'A062603791' ? 1200000 : $ref_adm->max_besar;
-                    $totalBiayaAdm = $biayaAdm - round($biayaAdm * ($ref_disc->discount / 100));
-                } else {
-                    $totalBiayaAdm = $biayaAdm - round($biayaAdm * ($ref_disc->discount / 100));
-                }
-                $totalEselon = $totalEselon + $totalBiayaAdm;
-            } else {
-                $totalEselon = $totalEselon + $totalBiayaAdm;
-            }
+            $totalBiayaAdm = $billingCreated ? $billingCreated->total - $billingCreated->total_disc : 0;
+            $totalEselon = $totalEselon + $totalBiayaAdm;
+            // if ($billingCreated->tanggal < '2026-07-01') {
+            //     $biayaAdm = $billingCreated->total;
+            //         $totalBiayaAdm = $biayaAdm - $billingCreated->total_disc;
+            // } else {
+            //     $ref_adm = ReferensiAdmSimrs::select(['besar_fee', 'max_besar'])->where('kode_eselon', $this->eselon->nama)->first();
+            //     $biayaAdm = round($totalEselon * ($ref_adm->besar_fee / 100));
+            //     $ref_disc = ReferensiDiscountSimrs::select(['kode_eselon', 'jenis_disc', 'discount'])
+            //         ->where('kode_eselon', $this->eselon->nama)
+            //         ->where('jenis_disc', '6A')
+            //         ->where('ceklist', 'Y')
+            //         ->first();
+            //     $totalBiayaAdm = $biayaAdm;
+            // }
+            // if (in_array($this->eselon->nama, ['PTPPNS', 'BRILIFMC'])) {
+            //     if ($billingCreated->tanggal < '2026-07-01') {
+            //         $biayaAdm = $billingCreated->total;
+            //         $totalBiayaAdm = $biayaAdm - $billingCreated->total_disc;
+            //     } else {
+            //         if ($biayaAdm >= $ref_adm->max_besar) {
+            //             $biayaAdm = $ref_adm->max_besar;
+            //             $totalBiayaAdm = $biayaAdm - round($biayaAdm * ($ref_disc->discount / 100));
+            //         } else {
+            //             $totalBiayaAdm = $biayaAdm - round($biayaAdm * ($ref_disc->discount / 100));
+            //         }
+            //     }
+            //     $totalEselon = $totalEselon + $totalBiayaAdm;
+            // } else {
+            //     $totalEselon = $totalEselon + $totalBiayaAdm;
+            // }
             // dd($tindakan->sum('total_biaya') . ' ' . $alkes->sum('total_biaya') . ' ' . $resepRawatJalan->sum('total_biaya') . ' ' . $resepRawatInap->sum('total_biaya') . ' ' . $kamar->sum('total_biaya') . ' ' . $dataEmbalace['ppn'] . ' ' . $totalBiayaAdm . ' ' . $totalEselon . ' ' . round($totalEselon * ($ref_adm->besar_fee / 100)) . ' ' . round($biayaAdm * ($ref_disc->discount / 100)));
         }
 
