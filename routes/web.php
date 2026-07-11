@@ -10,12 +10,15 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\LayananController;
 use App\Http\Controllers\McuController;
+use App\Http\Controllers\ProgramUnitController;
+use App\Http\Controllers\RkapController;
 use App\Http\Controllers\Setting;
 use App\Http\Controllers\Sp3Controller;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\SubLayananController;
 use App\Http\Controllers\TeacherController;
+use App\Http\Controllers\UnitController;
 use App\Http\Controllers\UserManagementController;
 use App\Models\Simrs\BillingSimrs;
 use App\Models\Simrs\RegMultiPoliSimrs;
@@ -208,57 +211,26 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
         Route::get('get-sub-layanans-data', 'getSubLayanansData')->middleware('auth')->name('get-sub-layanans-data'); // get data sub layanans
     });
 
-    // ------------------------ teacher -------------------------------//
-    Route::controller(TeacherController::class)->group(function () {
-        Route::get('teacher/add/page', 'teacherAdd')->middleware('auth')->name('teacher/add/page'); // page teacher
-        Route::get('teacher/list/page', 'teacherList')->middleware('auth')->name('teacher/list/page'); // page teacher
-        Route::get('teacher/grid/page', 'teacherGrid')->middleware('auth')->name('teacher/grid/page'); // page grid teacher
-        Route::post('teacher/save', 'saveRecord')->middleware('auth')->name('teacher/save'); // save record
-        Route::get('teacher/edit/{user_id}', 'editRecord'); // view teacher record
-        Route::post('teacher/update', 'updateRecordTeacher')->middleware('auth')->name('teacher/update'); // update record
-        Route::post('teacher/delete', 'teacherDelete')->name('teacher/delete'); // delete record teacher
-    });
-
-    // ----------------------- department -----------------------------//
-    Route::controller(DepartmentController::class)->group(function () {
-        Route::get('department/list/page', 'departmentList')->middleware('auth')->name('department/list/page'); // department/list/page
-        Route::get('department/add/page', 'indexDepartment')->middleware('auth')->name('department/add/page'); // page add department
-        Route::get('department/edit/{department_id}', 'editDepartment'); // page add department
-        Route::post('department/save', 'saveRecord')->middleware('auth')->name('department/save'); // department/save
-        Route::post('department/update', 'updateRecord')->middleware('auth')->name('department/update'); // department/update
-        Route::post('department/delete', 'deleteRecord')->middleware('auth')->name('department/delete'); // department/delete
-        Route::get('get-data-list', 'getDataList')->name('get-data-list'); // get data list
-
-    });
-
-    // ----------------------- subject -----------------------------//
-    Route::controller(SubjectController::class)->group(function () {
-        Route::get('subject/list/page', 'subjectList')->middleware('auth')->name('subject/list/page'); // subject/list/page
-        Route::get('subject/add/page', 'subjectAdd')->middleware('auth')->name('subject/add/page'); // subject/add/page
-        Route::post('subject/save', 'saveRecord')->name('subject/save'); // subject/save
-        Route::post('subject/update', 'updateRecord')->name('subject/update'); // subject/update
-        Route::post('subject/delete', 'deleteRecord')->name('subject/delete'); // subject/delete
-        Route::get('subject/edit/{subject_id}', 'subjectEdit'); // subject/edit/page
-    });
-
-    // ----------------------- invoice -----------------------------//
-    Route::controller(InvoiceController::class)->group(function () {
-        Route::get('invoice/list/page', 'invoiceList')->middleware('auth')->name('invoice/list/page'); // subjeinvoicect/list/page
-        Route::get('invoice/paid/page', 'invoicePaid')->middleware('auth')->name('invoice/paid/page'); // invoice/paid/page
-        Route::get('invoice/overdue/page', 'invoiceOverdue')->middleware('auth')->name('invoice/overdue/page'); // invoice/overdue/page
-        Route::get('invoice/draft/page', 'invoiceDraft')->middleware('auth')->name('invoice/draft/page'); // invoice/draft/page
-        Route::get('invoice/recurring/page', 'invoiceRecurring')->middleware('auth')->name('invoice/recurring/page'); // invoice/recurring/page
-        Route::get('invoice/cancelled/page', 'invoiceCancelled')->middleware('auth')->name('invoice/cancelled/page'); // invoice/cancelled/page
-        Route::get('invoice/grid/page', 'invoiceGrid')->middleware('auth')->name('invoice/grid/page'); // invoice/grid/page
-        Route::get('invoice/add/page', 'invoiceAdd')->middleware('auth')->name('invoice/add/page'); // invoice/add/page
-        Route::post('invoice/add/save', 'saveRecord')->name('invoice/add/save'); // invoice/add/save
-        Route::post('invoice/update/save', 'updateRecord')->name('invoice/update/save'); // invoice/update/save
-        Route::post('invoice/delete', 'deleteRecord')->name('invoice/delete'); // invoice/delete
-        Route::get('invoice/edit/{invoice_id}', 'invoiceEdit')->middleware('auth')->name('invoice/edit/page'); // invoice/edit/page
-        Route::get('invoice/view/{invoice_id}', 'invoiceView')->middleware('auth')->name('invoice/view/page'); // invoice/view/page
-        Route::get('invoice/settings/page', 'invoiceSettings')->middleware('auth')->name('invoice/settings/page'); // invoice/settings/page
-        Route::get('invoice/settings/tax/page', 'invoiceSettingsTax')->middleware('auth')->name('invoice/settings/tax/page'); // invoice/settings/tax/page
-        Route::get('invoice/settings/bank/page', 'invoiceSettingsBank')->middleware('auth')->name('invoice/settings/bank/page'); // invoice/settings/bank/page
+    // ------------------------ RKAP -------------------------------//
+    Route::prefix('rkap')->group(function () {
+        Route::controller(UnitController::class)->group(function () {
+            Route::get('/unit/list', 'index')->middleware('auth')->name('unit/list'); // list Unit
+            Route::get('get-units-data', 'getUnitData')->middleware('auth')->name('get-units-data'); // get data Units
+        });
+        Route::controller(ProgramUnitController::class)->group(function () {
+            Route::get('/{slug}/program-unit/list', 'index')->middleware('auth')->name('program-unit/list'); // list Program Unit
+            Route::get('get-program-units-data/{slug}', 'getProgramUnitData')->middleware('auth')->name('get-program-units-data'); // get data Program Unit
+            Route::post('/{slug}/program-unit/store', 'store')->middleware('auth')->name('program-unit.store');
+            Route::put('/{slug}/program-unit/{id}/update', 'update')->middleware('auth')->name('program-unit.update');
+            Route::delete('/{slug}/program-unit/{id}/delete', 'destroy')->middleware('auth')->name('program-unit.destroy');
+        });
+        Route::controller(RkapController::class)->group(function () {
+            Route::get('/{slug}/coa/list', 'index')->middleware('auth')->name('coa/list'); // list Rincian COA Program Unit
+            Route::get('get-coas-data/{slug}', 'getCoaData')->middleware('auth')->name('get-coas-data'); // get data COA Program Unit
+            Route::post('/{slug}/coa/store', 'store')->middleware('auth')->name('coa.store');
+            Route::put('/{slug}/coa/{id}/update', 'update')->middleware('auth')->name('coa.update');
+            Route::delete('/{slug}/coa/{id}/delete', 'destroy')->middleware('auth')->name('coa.destroy');
+        });
     });
 
     // ----------------------- accounts ----------------------------//
