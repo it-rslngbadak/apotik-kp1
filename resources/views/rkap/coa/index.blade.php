@@ -49,16 +49,16 @@
                             </div>
 
                             <div class="table-responsive">
-                                <table class="table table-stripped table table-hover table-center mb-0"
-                                    id="ProgramUnitList">
+                                <table class="table table-stripped table table-hover table-center mb-0" id="CoaList">
                                     <thead class="student-thread">
                                         <tr>
                                             <th>Kode COA</th>
+                                            <th>Eselon</th>
                                             <th>Keterangan COA</th>
                                             <th>Uraian</th>
+                                            <th>Harga Satuan</th>
                                             <th>Jumlah</th>
                                             <th>Satuan</th>
-                                            <th>Harga Satuan</th>
                                             <th>Perkiraan</th>
                                             <th class="text-end">Action</th>
                                         </tr>
@@ -83,34 +83,78 @@
                 </div>
                 <div class="modal-body">
                     <form id="formProgramUnit">
-                        <input type="hidden" id="program_id" name="id">
+                        <input type="hidden" id="program_unit_id" name="program_unit_id" value="{{ $program->id }}">
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="jenis_coa" id="pendapatan"
+                                    value="Pendapatan">
+                                <label class="form-check-label" for="pendapatan">
+                                    Pendapatan
+                                </label>
+                                <input class="form-check-input" type="radio" name="jenis_coa" id="biaya"
+                                    value="Biaya">
+                                <label class="form-check-label" for="biaya">
+                                    Biaya
+                                </label>
+                            </div>
+                            <span class="text-danger error-jenis_coa"></span>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="kategori" id="tindakan"
+                                    value="Tindakan">
+                                <label class="form-check-label" for="tindakan">
+                                    Tindakan
+                                </label>
+                                <input class="form-check-input" type="radio" name="kategori" id="farmalkes"
+                                    value="Farmalkes">
+                                <label class="form-check-label" for="farmalkes">
+                                    Farmalkes
+                                </label>
+                                <input class="form-check-input" type="radio" name="kategori" id="umum"
+                                    value="Umum">
+                                <label class="form-check-label" for="umum">
+                                    Umum
+                                </label>
+                            </div>
+                            <span class="text-danger error-kategori"></span>
+                        </div>
+
+                        {{-- Jika jenis coa adalah pendapatan maka tindakan dan atau farmalkes itu wajib ada eselonnya --}}
+                        <div class="mb-3">
+                            <label for="eselon" class="col-form-label">Eselon</label>
+                            <select class="form-select" aria-label="Default select example" id="eselon"
+                                name="eselon">
+                                <option selected>Pilih Jenis Eselon</option>
+                                <option value="Cash">Cash</option>
+                                <option value="Asuransi">Asuransi</option>
+                                <option value="Yayasan">Yayasan</option>
+                                <option value="Perusahaan">Perusahaan</option>
+                            </select>
+                        </div>
+
+                        {{-- input Select 2 untuk searching datanya berdasarkan jenis --}}
                         <div class="mb-3">
                             <label for="desc_transaksi" class="col-form-label">Uraian Pekerjaan</label>
                             <input type="text" class="form-control" id="desc_transaksi" name="desc_transaksi">
                             <span class="text-danger error-desc_transaksi"></span>
                         </div>
+
+                        jika uraian sudah terisi maka jumlah dan harga satuan autofill berdasarkan data masternya.
                         <div class="mb-3">
                             <label for="jumlah" class="col-form-label">Jumlah</label>
                             <input type="number" class="form-control" id="jumlah" name="jumlah">
                             <span class="text-danger error-jumlah"></span>
                         </div>
                         <div class="mb-3">
+                            <label for="satuan" class="col-form-label">Satuan</label>
+                            <input type="number" class="form-control" id="satuan" name="satuan">
+                            <span class="text-danger error-satuan"></span>
+                        </div>
+                        <div class="mb-3">
                             <label for="harga_satuan" class="col-form-label">Harga Satuan</label>
                             <input type="number" class="form-control" id="harga_satuan" name="harga_satuan">
                             <span class="text-danger error-harga_satuan"></span>
-                        </div>
-                        <div class="mb-3">
-                            <label for="jenis_coa" class="col-form-label">Jenis COA</label>
-                            <select class="form-select" aria-label="Default select example" id="jenis_coa" name="jenis_coa">
-                                <option selected>Pilih Jenis COA</option>
-                                <option value="Pendapatan">Pendapatan</option>
-                                <option value="Biaya">Biaya</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="ket_program" class="col-form-label">Keterangan Program (Opsional)</label>
-                            <textarea class="form-control" id="ket_program" name="ket_program"></textarea>
-                            <span class="text-danger error-ket_program"></span>
                         </div>
                     </form>
                 </div>
@@ -158,23 +202,47 @@
         $(document).ready(function() {
             $('.select2').select2();
 
-            let table = $('#ProgramUnitList').DataTable({
+            let table = $('#CoaList').DataTable({
                 processing: true,
                 serverSide: true,
                 ordering: true,
                 searching: true,
                 order: [],
                 ajax: {
-                    url: "{{ route('get-program-units-data', $unit->slug) }}",
+                    url: "{{ route('get-coas-data', $program->slug) }}",
                     cache: false,
                 },
                 columns: [{
-                        data: 'nama_program',
-                        name: 'nama_program'
+                        data: 'coa',
+                        name: 'coa'
                     },
                     {
-                        data: 'ket_program',
-                        name: 'ket_program'
+                        data: 'eselon',
+                        name: 'eselon'
+                    },
+                    {
+                        data: 'ket_coa',
+                        name: 'ket_coa'
+                    },
+                    {
+                        data: 'desc_transaksi',
+                        name: 'desc_transaksi'
+                    },
+                    {
+                        data: 'harga_satuan',
+                        name: 'harga_satuan'
+                    },
+                    {
+                        data: 'jumlah',
+                        name: 'jumlah'
+                    },
+                    {
+                        data: 'satuan',
+                        name: 'satuan'
+                    },
+                    {
+                        data: 'perkiraan',
+                        name: 'perkiraan'
                     },
                     {
                         data: 'modify',
@@ -217,8 +285,8 @@
 
                 let id = $('#program_id').val();
                 let url = id ?
-                    "{{ url('rkap/' . $unit->slug . '/program-unit') }}/" + id + "/update" :
-                    "{{ route('program-unit.store', $unit->slug) }}";
+                    "{{ url('rkap/' . $program->slug . '/coa') }}/" + id + "/update" :
+                    "{{ route('coa.store', $program->slug) }}";
                 let method = id ? 'PUT' : 'POST';
 
                 $.ajax({
@@ -264,7 +332,7 @@
                 let id = $('#delete_program_id').val();
 
                 $.ajax({
-                    url: "{{ url('rkap/' . $unit->slug . '/program-unit') }}/" + id + "/delete",
+                    url: "{{ url('rkap/' . $program->slug . '/coa') }}/" + id + "/delete",
                     method: 'DELETE',
                     data: {
                         _token: "{{ csrf_token() }}",

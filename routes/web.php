@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountsController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\BillingController;
+use App\Http\Controllers\CoaController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\EslonController;
 use App\Http\Controllers\HomeController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\LayananController;
 use App\Http\Controllers\McuController;
 use App\Http\Controllers\ProgramUnitController;
+use App\Http\Controllers\ReferensiController;
 use App\Http\Controllers\RkapController;
 use App\Http\Controllers\Setting;
 use App\Http\Controllers\Sp3Controller;
@@ -217,6 +219,13 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::get('/unit/list', 'index')->middleware('auth')->name('unit/list'); // list Unit
             Route::get('get-units-data', 'getUnitData')->middleware('auth')->name('get-units-data'); // get data Units
         });
+        Route::controller(RkapController::class)->group(function () {
+            Route::get('/{slug}/rkap/list', 'index')->middleware('auth')->name('rkap/list'); // list Rincian COA Program Unit
+            Route::get('get-rkaps-data/{slug}', 'getRkapData')->middleware('auth')->name('get-rkaps-data'); // get data COA Program Unit
+            Route::post('/{slug}/rkap/store', 'store')->middleware('auth')->name('rkap.store');
+            Route::put('/{slug}/rkap/{id}/update', 'update')->middleware('auth')->name('rkap.update');
+            Route::delete('/{slug}/rkap/{id}/delete', 'destroy')->middleware('auth')->name('rkap.destroy');
+        });
         Route::controller(ProgramUnitController::class)->group(function () {
             Route::get('/{slug}/program-unit/list', 'index')->middleware('auth')->name('program-unit/list'); // list Program Unit
             Route::get('get-program-units-data/{slug}', 'getProgramUnitData')->middleware('auth')->name('get-program-units-data'); // get data Program Unit
@@ -224,12 +233,18 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::put('/{slug}/program-unit/{id}/update', 'update')->middleware('auth')->name('program-unit.update');
             Route::delete('/{slug}/program-unit/{id}/delete', 'destroy')->middleware('auth')->name('program-unit.destroy');
         });
-        Route::controller(RkapController::class)->group(function () {
+        Route::controller(CoaController::class)->group(function () {
             Route::get('/{slug}/coa/list', 'index')->middleware('auth')->name('coa/list'); // list Rincian COA Program Unit
             Route::get('get-coas-data/{slug}', 'getCoaData')->middleware('auth')->name('get-coas-data'); // get data COA Program Unit
             Route::post('/{slug}/coa/store', 'store')->middleware('auth')->name('coa.store');
             Route::put('/{slug}/coa/{id}/update', 'update')->middleware('auth')->name('coa.update');
             Route::delete('/{slug}/coa/{id}/delete', 'destroy')->middleware('auth')->name('coa.destroy');
+        });
+        Route::controller(ReferensiController::class)->group(function () {
+            Route::get('/ref-pendapatan/list', 'indexPendapatan')->middleware('auth')->name('pendapatan/list'); // list Referensi Pendapatan
+            Route::get('/get-ref-pendapatans-data', 'getPendapatanData')->middleware('auth')->name('get-pendapatans-data'); // get data referensi Pendapatan
+            Route::get('/ref-biaya/list', 'indexBiaya')->middleware('auth')->name('biaya/list'); // list Referensi Biaya
+            Route::get('/get-ref-biayas-data', 'getBiayaData')->middleware('auth')->name('get-biayas-data'); // get data referensi Biaya
         });
     });
 

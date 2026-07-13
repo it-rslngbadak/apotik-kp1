@@ -13,7 +13,7 @@ class ProgramUnit extends Model
     protected $table = 'program_units';
 
     protected $fillable = [
-        'unit_id',
+        'rkap_id',
         'nama_program',
         'ket_program',
         'slug',
@@ -52,13 +52,18 @@ class ProgramUnit extends Model
         return 'slug';
     }
 
-    public function unit()
-    {
-        return $this->belongsTo(Unit::class, 'unit_id', 'id');
-    }
+    // public function unit()
+    // {
+    //     return $this->belongsTo(Unit::class, 'unit_id', 'id');
+    // }
 
     public function rkap()
     {
-        return $this->hasMany(Unit::class, 'program_unit_id', 'id');
+        return $this->belongsTo(Rkap::class, 'rkap_id', 'id');
+    }
+
+    public function coa()
+    {
+        return $this->hasMany(Coa::class, 'program_unit_id', 'id');
     }
 }

@@ -66,7 +66,7 @@ class UnitService
         foreach ($records as $record) {
             $modify = '
             <td class="text-end">
-                <a href="' . route('program-unit/list', $record->slug) . '" class="btn btn-sm bg-success-light">
+                <a href="' . route('rkap/list', $record->slug) . '" class="btn btn-sm bg-success-light">
                     <i class="far fa-eye me-2"></i>
             </td>
             ';

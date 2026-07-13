@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Rkap extends Model
 {
@@ -12,23 +13,43 @@ class Rkap extends Model
     protected $table = 'rkaps';
 
     protected $fillable = [
-        'program_unit_id',
-        'kode_transaksi_id',
-        'desc_transaksi',
-        'jumlah',
-        'satuan',
-        'harga_satuan',
-        'jenis_coa',
+        'unit_id',
+        'periode',
         'status',
+        'slug',
     ];
 
-    protected $appends = [
-        'total_harga'
-    ];
-
-    public function getTotalhargaAttribute()
+    protected static function booted()
     {
-        return $this->jumlah * $this->harga_satuan;
+        static::creating(function (Rkap $data) {
+            if ($data->periode) {
+                $data->slug = $data->slug ?: static::generateUniqueToken();
+            }
+        });
+
+        static::updating(function (Rkap $data) {
+            if ((($data->isDirty('periode')) && $data->periode) || empty($data->slug)) {
+                $data->slug = static::generateUniqueToken($data->id);
+            }
+        });
+    }
+
+    protected static function generateUniqueToken(int $ignoreId = null): string
+    {
+        do {
+            $token = Str::random(16);
+        } while (
+            static::where('slug', $token)
+            ->when($ignoreId, fn($query) => $query->where('id', '!=', $ignoreId))
+            ->exists()
+        );
+
+        return $token;
+    }
+
+    public function getRouteKeyName()
+    {
+        return 'slug';
     }
 
     public function unit()
@@ -36,8 +57,8 @@ class Rkap extends Model
         return $this->belongsTo(Unit::class, 'unit_id', 'id');
     }
 
-    public function kodeTransaksi()
+    public function programUnit()
     {
-        return $this->belongsTo(KodeTransaksi::class, 'kode_transaksi_id', 'id');
+        return $this->hasMany(ProgramUnit::class, 'rkap_id', 'id');
     }
 }

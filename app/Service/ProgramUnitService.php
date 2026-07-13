@@ -3,15 +3,10 @@
 namespace App\Service;
 
 use App\Models\ProgramUnit;
-use App\Models\Unit;
-use Brian2694\Toastr\Facades\Toastr;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class ProgramUnitService
 {
-    public static function getProgramUnitData($request, $unitSlug)
+    public static function getProgramUnitData($request, $rkapSlug)
     {
         $draw            = $request->get('draw');
         $start           = $request->get("start");
@@ -33,14 +28,14 @@ class ProgramUnitService
         };
 
         // ✅ Base query
-        $baseQuery = ProgramUnit::whereHas('unit', function ($query) use ($unitSlug) {
-            $query->where('slug', $unitSlug);
+        $baseQuery = ProgramUnit::whereHas('rkap', function ($query) use ($rkapSlug) {
+            $query->where('slug', $rkapSlug);
         });
         // Jika ingin filter tgl_keluar juga, ganti/tambah:
         // ->where('tgl_keluar', '<=', $sampai_tgl)
 
-        $totalRecords = ProgramUnit::whereHas('unit', function ($query) use ($unitSlug) {
-            $query->where('slug', $unitSlug);
+        $totalRecords = ProgramUnit::whereHas('rkap', function ($query) use ($rkapSlug) {
+            $query->where('slug', $rkapSlug);
         })->count();
 
         $totalRecordsWithFilter = (clone $baseQuery)
@@ -64,7 +59,7 @@ class ProgramUnitService
 
         foreach ($records as $record) {
             $modify = '
-                <a href="' . url('sp3-verifikasi/' . $record->slug) . '" class="btn btn-sm bg-success-light">
+                <a href="' . route('coa/list', $record->slug) . '" class="btn btn-sm bg-success-light">
                     <i class="far fa-eye"></i>
                 </a>
                 <button type="button" class="btn btn-sm bg-warning-light btn-edit-program"

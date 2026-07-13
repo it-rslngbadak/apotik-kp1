@@ -81,6 +81,13 @@
                             <li><a href="{{ route('unit/list') }}"
                                     class="{{ set_active(['rkap*']) }} {{ request()->is('rkap/*') ? 'active' : '' }}">List
                                     Unit</a></li>
+                            {{-- <li><a href="{{ route('billing-verifikasi/list') }}" class="{{set_active(['billing-verifikasi/list'])}} {{ (request()->is('billing/edit/*')) ? 'active' : '' }}">List Billing</a></li> --}}
+                            <li><a href="{{ route('pendapatan/list') }}"
+                                    class="{{ set_active(['rkap/ref-pendapatan*']) }} {{ request()->is('rkap/ref-pendapatan*') ? 'active' : '' }}">Referensi
+                                    Pendapatan</a></li>
+                            <li><a href="{{ route('biaya/list') }}"
+                                    class="{{ set_active(['rkap/ref-biaya*']) }} {{ request()->is('rkap/ref-biaya*') ? 'active' : '' }}">Referensi
+                                    Biaya</a></li>
                         </ul>
                     </li>
                 @endif

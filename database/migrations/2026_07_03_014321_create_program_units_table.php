@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('program_units', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('unit_id')->references('id')->on('units');
+            $table->foreignId('rkap_id')->references('id')->on('rkaps');
             $table->string('slug')->index()->nullable();
             $table->string('nama_program');
             $table->text('ket_program')->nullable();

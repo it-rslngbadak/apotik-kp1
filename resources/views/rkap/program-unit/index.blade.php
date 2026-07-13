@@ -6,9 +6,10 @@
                 <div class="row">
                     <div class="col-sm-12">
                         <div class="page-sub-header">
-                            <h3 class="page-title">Program Unit {{ $unit->nama }}</h3>
+                            <h3 class="page-title">Unit {{ $rkap->nama }}</h3>
+                            <h3 class="page-title">Program Unit {{ $rkap->nama }}</h3>
                             <ul class="breadcrumb">
-                                <li class="breadcrumb-item"><a href="{{ route('program-unit/list', $unit->slug) }}">Program
+                                <li class="breadcrumb-item"><a href="{{ route('program-unit/list', $rkap->slug) }}">Program
                                         Unit</a></li>
                                 <li class="breadcrumb-item active">All Program Units</li>
                             </ul>
@@ -25,10 +26,10 @@
                             <div class="page-header">
                                 <div class="row align-items-center">
                                     <div class="col">
-                                        <h3 class="page-title">List Program Unit {{ $unit->nama }}</h3>
+                                        <h3 class="page-title">List Program Unit {{ $rkap->nama }}</h3>
                                     </div>
                                     <div class="col-auto text-end float-end ms-auto download-grp">
-                                        <a href="{{ route('program-unit/list', $unit->slug) }}"
+                                        <a href="{{ route('program-unit/list', $rkap->slug) }}"
                                             class="btn btn-outline-gray me-2 active">
                                             <i class="fa fa-list" aria-hidden="true"></i>
                                         </a>
@@ -141,7 +142,7 @@
                 searching: true,
                 order: [],
                 ajax: {
-                    url: "{{ route('get-program-units-data', $unit->slug) }}",
+                    url: "{{ route('get-program-units-data', $rkap->slug) }}",
                     cache: false,
                 },
                 columns: [{
@@ -193,8 +194,8 @@
 
                 let id = $('#program_id').val();
                 let url = id ?
-                    "{{ url('rkap/' . $unit->slug . '/program-unit') }}/" + id + "/update" :
-                    "{{ route('program-unit.store', $unit->slug) }}";
+                    "{{ url('rkap/' . $rkap->slug . '/program-unit') }}/" + id + "/update" :
+                    "{{ route('program-unit.store', $rkap->slug) }}";
                 let method = id ? 'PUT' : 'POST';
 
                 $.ajax({
@@ -240,7 +241,7 @@
                 let id = $('#delete_program_id').val();
 
                 $.ajax({
-                    url: "{{ url('rkap/' . $unit->slug . '/program-unit') }}/" + id + "/delete",
+                    url: "{{ url('rkap/' . $rkap->slug . '/program-unit') }}/" + id + "/delete",
                     method: 'DELETE',
                     data: {
                         _token: "{{ csrf_token() }}",

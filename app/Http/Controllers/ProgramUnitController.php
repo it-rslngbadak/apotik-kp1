@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\ProgramUnit;
+use App\Models\Rkap;
 use App\Models\Unit;
 use App\Service\ProgramUnitService;
 use Illuminate\Http\Request;
@@ -13,13 +14,13 @@ class ProgramUnitController extends Controller
 {
     public function index($slug)
     {
-        $unit = Unit::where('slug', $slug)->first();
-        return view('rkap.program-unit.index', compact('unit'));
+        $rkap = Rkap::where('slug', $slug)->first();
+        return view('rkap.program-unit.index', compact('rkap'));
     }
 
-    public function getProgramUnitData(Request $request, $unitSlug)
+    public function getProgramUnitData(Request $request, $rkapSlug)
     {
-        $unitData = ProgramUnitService::getProgramUnitData($request, $unitSlug);
+        $unitData = ProgramUnitService::getProgramUnitData($request, $rkapSlug);
         return response()->json($unitData);
     }
 
@@ -42,10 +43,10 @@ class ProgramUnitController extends Controller
         }
 
         try {
-            $unit = Unit::where('slug', $slug)->firstOrFail();
+            $rkap = Rkap::where('slug', $slug)->firstOrFail();
 
             ProgramUnit::create([
-                'unit_id'      => $unit->id,
+                'rkap_id'      => $rkap->id,
                 'nama_program' => $request->nama_program,
                 'ket_program'  => $request->ket_program,
             ]);
