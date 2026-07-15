@@ -10,6 +10,7 @@ use App\Http\Controllers\EslonController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\LayananController;
+use App\Http\Controllers\MasterController;
 use App\Http\Controllers\McuController;
 use App\Http\Controllers\ProgramUnitController;
 use App\Http\Controllers\ReferensiController;
@@ -245,6 +246,12 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::get('/get-ref-pendapatans-data', 'getPendapatanData')->middleware('auth')->name('get-pendapatans-data'); // get data referensi Pendapatan
             Route::get('/ref-biaya/list', 'indexBiaya')->middleware('auth')->name('biaya/list'); // list Referensi Biaya
             Route::get('/get-ref-biayas-data', 'getBiayaData')->middleware('auth')->name('get-biayas-data'); // get data referensi Biaya
+        });
+        Route::controller(MasterController::class)->group(function () {
+            Route::get('master-tindakan/search', 'searchTindakan')->name('master-tindakan.search');
+            Route::get('master-farmalkes/search', 'searchFarmalkes')->name('master-farmalkes.search');
+            Route::get('master-umum/search', 'searchUmum')->name('master-umum.search');
+            Route::get('kode-transaksi/search', 'searchKodeTransaksi')->name('kode-transaksi.search');
         });
     });
 
