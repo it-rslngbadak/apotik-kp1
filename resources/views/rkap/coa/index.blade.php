@@ -83,6 +83,7 @@
                 </div>
                 <div class="modal-body">
                     <form id="formCoa" x-data="{ jenisCoa: null, kategori: null }">
+                        <input type="hidden" id="coa_id" name="coa_id">
                         <input type="hidden" id="program_unit_id" name="program_unit_id" value="{{ $program->id }}">
 
                         {{-- Jenis COA --}}
@@ -446,6 +447,7 @@
             // Buka modal Edit, isi data (sesuaikan class tombol & data-attribute dengan tombol "modify" kamu)
             $(document).on('click', '.btn-edit-coa', function() {
                 const id = $(this).data('id');
+                console.log(id);
 
                 $('#coa_id').val(id);
                 $('#formCreateLabel').text('Edit COA');
@@ -459,14 +461,17 @@
                 $('#jumlah').val($(this).data('jumlah'));
                 $('#satuan').val($(this).data('satuan'));
                 $('#harga_satuan').val($(this).data('harga_satuan'));
+                $('#jenis_coa').val($(this).data('jenis_coa'));
+                $('#kategori').val($(this).data('kategori'));
+                const coaOption = new Option($(this).data('coa_text'), $(this).data('kode_transaksi_id'),
+                    true, true);
+                $('#kode_transaksi_id').append(coaOption).trigger('change');
 
                 const descOption = new Option($(this).data('desc_transaksi'), $(this).data(
                     'desc_transaksi'), true, true);
                 $('#desc_transaksi').append(descOption).trigger('change');
 
-                const coaOption = new Option($(this).data('coa_text'), $(this).data('kode_transaksi_id'),
-                    true, true);
-                $('#kode_transaksi_id').append(coaOption).trigger('change');
+                $('#eselon').val($(this).data('eselon'));
 
                 $('#formCreate').modal('show');
             });
@@ -488,6 +493,7 @@
                 $('.form-control, .form-select').removeClass('is-invalid');
 
                 let id = $('#coa_id').val();
+                console.log(id);
                 let url = id ?
                     "{{ url('rkap/' . $program->slug . '/coa') }}/" + id + "/update" :
                     "{{ route('coa.store', $program->slug) }}";
@@ -525,7 +531,7 @@
                         } else if (xhr.status === 404) {
                             toastr.error(xhr.responseJSON.message);
                         } else {
-                            toastr.error('Terjadi kesalahan pada server');
+                            toastr.error('Terjadi kesalahan pada server ' + xhr.responseJSON.message);
                         }
                     }
                 });

@@ -230,6 +230,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
         Route::controller(ProgramUnitController::class)->group(function () {
             Route::get('/{slug}/program-unit/list', 'index')->middleware('auth')->name('program-unit/list'); // list Program Unit
             Route::get('get-program-units-data/{slug}', 'getProgramUnitData')->middleware('auth')->name('get-program-units-data'); // get data Program Unit
+            Route::get('create-regular-program/{slug}', 'createRegularProgram')->middleware('auth')->name('create-regular-program'); // Create Regular Program Unit
             Route::post('/{slug}/program-unit/store', 'store')->middleware('auth')->name('program-unit.store');
             Route::put('/{slug}/program-unit/{id}/update', 'update')->middleware('auth')->name('program-unit.update');
             Route::delete('/{slug}/program-unit/{id}/delete', 'destroy')->middleware('auth')->name('program-unit.destroy');

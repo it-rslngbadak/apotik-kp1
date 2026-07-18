@@ -66,7 +66,7 @@ class MasterController extends Controller
                 'text' => $item->nama_item,
                 'jumlah' => 1,
                 'satuan' => $item->satuan ?? '-',
-                'harga_satuan' => $item->harga_satuan, // sesuaikan nama kolom
+                'harga_satuan' => number_format($item->harga_satuan, 0, ',', '.'), // sesuaikan nama kolom
             ]);
 
         return response()->json($data);
@@ -87,7 +87,7 @@ class MasterController extends Controller
                 'text' => $item->nama_item,
                 'jumlah' => 1,
                 'satuan' => $item->satuan ?? '-',
-                'harga_satuan' => $item->harga,
+                'harga_satuan' => number_format($item->harga, 0, ',', '.'),
             ]);
 
         return response()->json($data);
@@ -109,12 +109,12 @@ class MasterController extends Controller
                 fn($q) =>
                 $q->whereRaw('UPPER(nama_transaksi) like ?', ['%' . $search . '%'])
             )
-            ->limit(20)
             ->get()
             ->map(fn($item) => [
                 'id' => $item->id,
                 'text' => $item->kode . ' - ' . $item->nama_transaksi,
             ]);
+        // dd($programUnit);
 
         return response()->json($data);
     }

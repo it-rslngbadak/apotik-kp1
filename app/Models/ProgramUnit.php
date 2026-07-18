@@ -17,6 +17,8 @@ class ProgramUnit extends Model
         'nama_program',
         'ket_program',
         'slug',
+        'bulan',
+        'kategori',
     ];
 
     protected static function booted()

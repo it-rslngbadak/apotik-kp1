@@ -6,8 +6,7 @@
                 <div class="row">
                     <div class="col-sm-12">
                         <div class="page-sub-header">
-                            <h3 class="page-title">Unit {{ $rkap->nama }}</h3>
-                            <h3 class="page-title">Program Unit {{ $rkap->nama }}</h3>
+                            <h3 class="page-title">Program Unit {{ $rkap->unit->nama }} RKAP Tahun {{ $rkap->periode }}</h3>
                             <ul class="breadcrumb">
                                 <li class="breadcrumb-item"><a href="{{ route('program-unit/list', $rkap->slug) }}">Program
                                         Unit</a></li>
@@ -26,7 +25,7 @@
                             <div class="page-header">
                                 <div class="row align-items-center">
                                     <div class="col">
-                                        <h3 class="page-title">List Program Unit {{ $rkap->nama }}</h3>
+                                        <h3 class="page-title">List Program Unit {{ $rkap->unit->nama }}</h3>
                                     </div>
                                     <div class="col-auto text-end float-end ms-auto download-grp">
                                         <a href="{{ route('program-unit/list', $rkap->slug) }}"
@@ -39,12 +38,49 @@
                                         {{-- <a href="#" class="btn btn-outline-primary me-2"><i
                                                 class="fas fa-download"></i> Download</a> --}}
                                         <div class="btn btn-group">
-                                            <button type="button" class="btn btn-primary" data-bs-toggle="modal"
-                                                data-bs-target="#formCreate">
+                                            <button type="button" class="btn btn-primary dropdown-toggle"
+                                                data-bs-toggle="dropdown" aria-expanded="false">
                                                 <i class="fas fa-plus"></i>
                                             </button>
+                                            <ul class="dropdown-menu">
+                                                <li>
+                                                    <a href="{{ route('create-regular-program', $rkap->slug) }}"
+                                                        class="dropdown-item" href="#">Create Regular Program</a>
+                                                </li>
+                                                <li>
+                                                    <a href="#" class="dropdown-item" id="openModal">
+                                                        Create Work Program
+                                                    </a>
+                                                </li>
+                                            </ul>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="filterBulan" class="form-label">Bulan</label>
+                                    <select id="filterBulan" class="form-control select2" style="width: 100%;">
+                                        <option value="">-- Pilih Bulan --</option>
+                                        <option value="1">Januari</option>
+                                        <option value="2">Februari</option>
+                                        <option value="3">Maret</option>
+                                        <option value="4">April</option>
+                                        <option value="5">Mei</option>
+                                        <option value="6">Juni</option>
+                                        <option value="7">Juli</option>
+                                        <option value="8">Agustus</option>
+                                        <option value="9">September</option>
+                                        <option value="10">Oktober</option>
+                                        <option value="11">November</option>
+                                        <option value="12">Desember</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button type="button" id="btnFilter" class="btn btn-primary w-100">
+                                        <i class="fa fa-search"></i> Filter
+                                    </button>
                                 </div>
                             </div>
 
@@ -55,6 +91,7 @@
                                         <tr>
                                             <th>Nama Program</th>
                                             <th>Keterangan Program</th>
+                                            <th>Kategori</th>
                                             <th class="text-end">Action</th>
                                         </tr>
                                     </thead>
@@ -83,6 +120,38 @@
                             <label for="nama_program" class="col-form-label">Nama Program</label>
                             <input type="text" class="form-control" id="nama_program" name="nama_program">
                             <span class="text-danger error-nama_program"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label for="kategori" class="col-form-label">Kategori</label>
+                            <select class="form-select" name="kategori" id="kategori">
+                                <option value="" selected disabled>Pilih Kategori</option>
+                                <option value="Regular">Regular</option>
+                                <option value="Work Program">Work Program</option>
+                            </select>
+                            <span class="text-danger error-kategori"></span>
+                        </div>
+
+                        {{-- Wrapper bulan, disembunyikan default --}}
+                        <div class="mb-3" id="wrapper_bulan" style="display: none;">
+                            <label for="bulan" class="col-form-label">
+                                Bulan <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select" name="bulan" id="bulan">
+                                <option value="" selected disabled>Pilih Bulan</option>
+                                <option value="1">Januari</option>
+                                <option value="2">Februari</option>
+                                <option value="3">Maret</option>
+                                <option value="4">April</option>
+                                <option value="5">Mei</option>
+                                <option value="6">Juni</option>
+                                <option value="7">Juli</option>
+                                <option value="8">Agustus</option>
+                                <option value="9">September</option>
+                                <option value="10">Oktober</option>
+                                <option value="11">November</option>
+                                <option value="12">Desember</option>
+                            </select>
+                            <span class="text-danger error-bulan"></span>
                         </div>
                         <div class="mb-3">
                             <label for="ket_program" class="col-form-label">Keterangan Program (Opsional)</label>
@@ -144,6 +213,9 @@
                 ajax: {
                     url: "{{ route('get-program-units-data', $rkap->slug) }}",
                     cache: false,
+                    data: function(d) {
+                        d.filterBulan = $('#filterBulan').val();
+                    }
                 },
                 columns: [{
                         data: 'nama_program',
@@ -154,12 +226,26 @@
                         name: 'ket_program'
                     },
                     {
+                        data: 'kategori',
+                        name: 'kategori'
+                    },
+                    {
                         data: 'modify',
                         name: 'modify',
                         orderable: false,
                         searchable: false
                     },
                 ]
+            });
+
+            $(document).on('click', '#openModal', function(e) {
+                e.preventDefault();
+                const modal = new bootstrap.Modal(document.getElementById('formCreate'));
+                modal.show();
+            });
+
+            $('#btnFilter').on('click', function() {
+                table.ajax.reload();
             });
 
             // Reset form saat modal dibuka untuk Create
@@ -171,9 +257,13 @@
 
             // Buka modal Edit, isi data
             $(document).on('click', '.btn-edit-program', function() {
+                $('.text-danger').text(''); // ⬅️ tambahkan ini
+                $('.form-control').removeClass('is-invalid');
                 $('#program_id').val($(this).data('id'));
                 $('#nama_program').val($(this).data('nama'));
                 $('#ket_program').val($(this).data('ket'));
+                $('#kategori').val($(this).data('kategori'));
+                $('#bulan').val($(this).data('bulan'));
                 $('#formCreateLabel').text('Edit Program');
                 $('#formCreate').modal('show');
             });
@@ -186,6 +276,30 @@
             $('#btnSubmitProgram').on('click', function(e) {
                 e.preventDefault();
                 submitProgramUnit();
+            });
+
+            $(document).on('change', '#kategori', function() {
+                toggleBulanField($(this).val());
+            });
+
+            function toggleBulanField(kategori) {
+                const $wrapperBulan = $('#wrapper_bulan');
+                const $bulan = $('#bulan');
+
+                if (kategori === 'Work Program') {
+                    $wrapperBulan.show();
+                    $bulan.prop('required', true);
+                } else {
+                    $wrapperBulan.hide();
+                    $bulan.prop('required', false);
+                    $bulan.val(''); // reset biar gak nyangkut value lama saat submit sebagai Regular
+                }
+            }
+
+            // Pastikan state field bulan sesuai kondisi awal setiap modal dibuka
+            // (misal saat edit data Work Program, atau reset saat create baru)
+            $('#formCreate').on('shown.bs.modal', function() {
+                toggleBulanField($('#kategori').val());
             });
 
             function submitProgramUnit() {
@@ -205,6 +319,8 @@
                         _token: "{{ csrf_token() }}",
                         nama_program: $('#nama_program').val(),
                         ket_program: $('#ket_program').val(),
+                        kategori: $('#kategori').val(),
+                        bulan: $('#bulan').val(),
                     },
                     success: function(res) {
                         $('#formCreate').modal('hide');

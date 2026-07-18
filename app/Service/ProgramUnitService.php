@@ -20,7 +20,6 @@ class ProgramUnitService
         $columnName      = $columnIndex !== null ? $columnName_arr[$columnIndex]['data'] : null;
         $columnSortOrder = $order_arr[0]['dir'] ?? 'asc';
         $searchValue     = strtoupper($search_arr['value']);
-
         // ✅ Closure filter reusable
         $searchFilter = function ($query) use ($searchValue) {
             $query->whereRaw('UPPER(nama_program) like ?', ['%' . $searchValue . '%'])
@@ -28,11 +27,10 @@ class ProgramUnitService
         };
 
         // ✅ Base query
-        $baseQuery = ProgramUnit::whereHas('rkap', function ($query) use ($rkapSlug) {
-            $query->where('slug', $rkapSlug);
-        });
-        // Jika ingin filter tgl_keluar juga, ganti/tambah:
-        // ->where('tgl_keluar', '<=', $sampai_tgl)
+        $baseQuery = ProgramUnit::where('bulan', $request->get('filterBulan'))
+            ->whereHas('rkap', function ($query) use ($rkapSlug) {
+                $query->where('slug', $rkapSlug);
+            });
 
         $totalRecords = ProgramUnit::whereHas('rkap', function ($query) use ($rkapSlug) {
             $query->where('slug', $rkapSlug);
@@ -54,7 +52,6 @@ class ProgramUnitService
             ->skip($start)
             ->take($rowPerPage)
             ->get();
-
         $data_arr = [];
 
         foreach ($records as $record) {
@@ -65,7 +62,9 @@ class ProgramUnitService
                 <button type="button" class="btn btn-sm bg-warning-light btn-edit-program"
                     data-id="' . $record->id . '"
                     data-nama="' . e($record->nama_program) . '"
-                    data-ket="' . e($record->ket_program) . '">
+                    data-ket="' . e($record->ket_program) . '"
+                    data-kategori="' . e($record->kategori) . '"
+                    data-bulan="' . e($record->bulan) . '">
                     <i class="fa fa-edit"></i>
                 </button>
                 <button type="button" class="btn btn-sm bg-danger-light btn-delete-program"
@@ -79,6 +78,7 @@ class ProgramUnitService
             $data_arr[] = [
                 "nama_program" => $record->nama_program,
                 "ket_program"  => $record->ket_program ?? '-',
+                "kategori"  => $record->kategori ?? '-',
                 "modify"       => $modify,
             ];
         }

@@ -29,6 +29,8 @@ class ProgramUnitController extends Controller
         $validator = Validator::make($request->all(), [
             'nama_program' => 'required|string|max:255',
             'ket_program'  => 'nullable|string',
+            'kategori' => 'required|in:Regular,Work Program',
+            'bulan' => 'required_if:kategori,Work Program|nullable|integer|min:1|max:12',
         ], [
             'nama_program.required' => 'Nama program wajib diisi',
             'nama_program.max'      => 'Nama program maksimal 255 karakter',
@@ -49,6 +51,8 @@ class ProgramUnitController extends Controller
                 'rkap_id'      => $rkap->id,
                 'nama_program' => $request->nama_program,
                 'ket_program'  => $request->ket_program,
+                'bulan'  => $request->bulan,
+                'kategori'  => $request->kategori,
             ]);
 
             return response()->json([
@@ -68,6 +72,8 @@ class ProgramUnitController extends Controller
         $validator = Validator::make($request->all(), [
             'nama_program' => 'required|string|max:255',
             'ket_program'  => 'nullable|string',
+            'kategori' => 'required|in:Regular,Work Program',
+            'bulan' => 'required_if:kategori,Work Program|nullable|integer|min:1|max:12',
         ], [
             'nama_program.required' => 'Nama program wajib diisi',
             'nama_program.max'      => 'Nama program maksimal 255 karakter',
@@ -86,6 +92,8 @@ class ProgramUnitController extends Controller
             $program->update([
                 'nama_program' => $request->nama_program,
                 'ket_program'  => $request->ket_program,
+                'bulan'  => $request->bulan,
+                'kategori'  => $request->kategori,
             ]);
 
             return response()->json([

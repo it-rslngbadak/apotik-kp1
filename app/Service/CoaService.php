@@ -65,13 +65,21 @@ class CoaService
 
         foreach ($records as $record) {
             $modify = '
-                <button type="button" class="btn btn-sm bg-warning-light btn-edit-program"
+                <button type="button" class="btn btn-sm bg-warning-light btn-edit-coa"
                     data-id="' . $record->id . '"
-                    data-kode-transaksi="' . e($record->kodeTransaksi->kode) . '"
-                    data-ket="' . e($record->desc_transaksi) . '">
+                    data-jenis_coa="' . e($record->jenis_coa) . '"
+                    data-eselon="' . e($record->eselon) . '"
+                    data-jumlah="' . e($record->jumlah) . '"
+                    data-satuan="' . e($record->satuan) . '"
+                    data-harga_satuan="' . e($record->harga_satuan) . '"
+                    data-desc_transaksi="' . e($record->desc_transaksi) . '"
+                    data-coa_text="' . e($record->kode_coa) . '"
+                    data-kode_transaksi_id="' . $record->kode_transaksi_id . '"
+                    data-kategori="' . $record->kategori . '"
+                    data-jenis_tarif="' . $record->jenis_tarif . '">
                     <i class="fa fa-edit"></i>
                 </button>
-                <button type="button" class="btn btn-sm bg-danger-light btn-delete-program"
+                <button type="button" class="btn btn-sm bg-danger-light btn-delete-coa"
                     data-bs-toggle="modal" data-bs-target="#deleteProgramUnit"
                     data-id="' . $record->id . '"
                     data-nama="' . e($record->kodeTransaksi->kode) . '">
@@ -81,13 +89,14 @@ class CoaService
 
             $data_arr[] = [
                 "coa" => $record->kode_coa,
+                "jenis_coa" => $record->jenis_coa,
                 "eselon" => '-',
                 "ket_coa" => $record->desc_coa,
                 "desc_transaksi"  => $record->desc_transaksi,
                 "harga_satuan"  => $record->harga_satuan,
                 "jumlah"  => $record->jumlah,
                 "satuan"  => $record->satuan,
-                "perkiraan"  => $record->total_harga,
+                "perkiraan"  => $record->total_perkiraan,
                 "modify"       => $modify,
             ];
         }
@@ -98,5 +107,44 @@ class CoaService
             "recordsFiltered" => $totalRecordsWithFilter,
             "data"            => $data_arr,
         ];
+    }
+
+    public static function store(array $data)
+    {
+        return Coa::create([
+            'program_unit_id'   => $data['program_unit_id'],
+            'kode_transaksi_id' => $data['kode_transaksi_id'],
+            'kategori'            => $data['kategori'],
+            'desc_transaksi'    => $data['desc_transaksi'],
+            'jumlah'            => $data['jumlah'],
+            'satuan'            => $data['satuan'],
+            'harga_satuan'      => $data['harga_satuan'],
+            'jenis_coa'         => $data['jenis_coa'],
+            'eselon'            => $data['eselon'] ?? null,
+            'jenis_tarif'            => $data['jenis_tarif'] ?? null,
+            'status'            => 'Pending', // default, sesuaikan kalau ada value lain di DB
+        ]);
+    }
+
+    public static function update(Coa $coa, array $data)
+    {
+        $coa->update([
+            'kode_transaksi_id' => $data['kode_transaksi_id'],
+            'desc_transaksi'    => $data['desc_transaksi'],
+            'kategori'            => $data['kategori'],
+            'jumlah'            => $data['jumlah'],
+            'satuan'            => $data['satuan'],
+            'harga_satuan'      => $data['harga_satuan'],
+            'jenis_coa'         => $data['jenis_coa'],
+            'eselon'            => $data['eselon'] ?? null,
+            'jenis_tarif'            => $data['jenis_tarif'] ?? null,
+        ]);
+
+        return $coa->fresh();
+    }
+
+    public static function destroy(Coa $coa)
+    {
+        return $coa->delete();
     }
 }

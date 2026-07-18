@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Znck\Eloquent\Traits\BelongsToThrough;
 
 class Coa extends Model
 {
     use HasFactory;
+    use BelongsToThrough;
 
     protected $table = 'coas';
 
@@ -21,15 +23,17 @@ class Coa extends Model
         'jenis_coa',
         'status',
         'eselon',
+        'kategori',
+        'jenis_tarif',
     ];
 
     protected $appends = [
-        'total_harga',
+        'total_perkiraan',
         'kode_coa',
         'desc_coa',
     ];
 
-    public function getTotalhargaAttribute()
+    public function getTotalPerkiraanAttribute()
     {
         return $this->jumlah * $this->harga_satuan;
     }
@@ -46,6 +50,11 @@ class Coa extends Model
     public function getDescCoaAttribute()
     {
         return $this->kodeTransaksi->nama_transaksi;
+    }
+
+    public function unit()
+    {
+        return $this->belongsToThrough(Unit::class, [Rkap::class, ProgramUnit::class]);
     }
 
     public function programUnit()
