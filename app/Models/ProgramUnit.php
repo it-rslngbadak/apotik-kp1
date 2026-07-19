@@ -21,6 +21,11 @@ class ProgramUnit extends Model
         'kategori',
     ];
 
+    protected $appends = [
+        'total_pendapatan',
+        'total_biaya'
+    ];
+
     protected static function booted()
     {
         static::creating(function (ProgramUnit $data) {
@@ -52,6 +57,56 @@ class ProgramUnit extends Model
     public function getRouteKeyName()
     {
         return 'slug';
+    }
+
+    public function getTotalPendapatanAttribute()
+    {
+        $total = $this->coa
+            ->where('jenis_coa', 'Pendapatan')
+            ->sum('total_perkiraan');
+
+        if ($total < 100000) {
+            $factor = 1000;
+        } elseif ($total < 1000000) {
+            $factor = 10000;
+        } elseif ($total < 10000000) {
+            $factor = 100000;
+        } elseif ($total < 100000000) {
+            $factor = 1000000;
+        } elseif ($total < 1000000000) {
+            $factor = 10000000;
+        } elseif ($total < 10000000000) {
+            $factor = 100000000;
+        } elseif ($total < 100000000000) {
+            $factor = 1000000000;
+        } else {
+            $factor = 10000000000;
+        }
+
+        return round($total / $factor) * $factor;
+    }
+
+    public function getTotalBiayaAttribute()
+    {
+        $total = $this->coa->where('jenis_coa', 'Biaya')->sum('total_perkiraan');
+        if ($total < 100000) {
+            $factor = 1000;
+        } elseif ($total < 1000000) {
+            $factor = 10000;
+        } elseif ($total < 10000000) {
+            $factor = 100000;
+        } elseif ($total < 100000000) {
+            $factor = 1000000;
+        } elseif ($total < 1000000000) {
+            $factor = 10000000;
+        } elseif ($total < 10000000000) {
+            $factor = 100000000;
+        } elseif ($total < 100000000000) {
+            $factor = 1000000000;
+        } else {
+            $factor = 10000000000;
+        }
+        return round($total / $factor) * $factor;
     }
 
     // public function unit()

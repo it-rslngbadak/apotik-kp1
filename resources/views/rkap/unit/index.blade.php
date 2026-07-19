@@ -112,10 +112,6 @@
                                         <tr>
 
                                             <th>Nama</th>
-                                            <th>Kode Pendapatan</th>
-                                            <th>Kode Biaya</th>
-                                            <th>Deskripsi Pendapatan</th>
-                                            <th>Deskripsi Biaya</th>
                                             <th class="text-end">Action</th>
                                         </tr>
                                     </thead>
@@ -145,22 +141,6 @@
                 columns: [{
                         data: 'nama',
                         name: 'nama',
-                    },
-                    {
-                        data: 'kode_pendapatan',
-                        name: 'kode_pendapatan'
-                    },
-                    {
-                        data: 'kode_biaya',
-                        name: 'kode_biaya'
-                    },
-                    {
-                        data: 'desc_pendapatan',
-                        name: 'desc_pendapatan'
-                    },
-                    {
-                        data: 'desc_biaya',
-                        name: 'desc_biaya'
                     },
                     {
                         data: 'modify',

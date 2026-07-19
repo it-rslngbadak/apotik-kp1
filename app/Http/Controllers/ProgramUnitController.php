@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ProgramUnitRequest;
 use App\Models\ProgramUnit;
 use App\Models\Rkap;
 use App\Models\Unit;
 use App\Service\ProgramUnitService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class ProgramUnitController extends Controller
@@ -24,42 +27,30 @@ class ProgramUnitController extends Controller
         return response()->json($unitData);
     }
 
-    public function store(Request $request, $slug)
+    public function createRegularProgram($slug)
     {
-        $validator = Validator::make($request->all(), [
-            'nama_program' => 'required|string|max:255',
-            'ket_program'  => 'nullable|string',
-            'kategori' => 'required|in:Regular,Work Program',
-            'bulan' => 'required_if:kategori,Work Program|nullable|integer|min:1|max:12',
-        ], [
-            'nama_program.required' => 'Nama program wajib diisi',
-            'nama_program.max'      => 'Nama program maksimal 255 karakter',
-        ]);
+        $rkap = Rkap::where('slug', $slug)->first();
+        return view('rkap.program-unit.create', compact('rkap'));
+    }
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Validasi gagal',
-                'errors'  => $validator->errors(),
-            ], 422);
-        }
+    public function inputCoaProgramReguler($slug)
+    {
+        $program = ProgramUnit::where('slug', $slug)->first();
+        return view('rkap.program-unit.input-coa-regular', compact('program'));
+    }
 
-        try {
-            $rkap = Rkap::where('slug', $slug)->firstOrFail();
+    public function store(ProgramUnitRequest $request, $slug)
+    {
+        $validated = $request->validated();
+        $rkap = Rkap::where('slug', $slug)->firstOrFail();
+        $program = ProgramUnitService::storeProgramUnit($validated, $rkap);
 
-            ProgramUnit::create([
-                'rkap_id'      => $rkap->id,
-                'nama_program' => $request->nama_program,
-                'ket_program'  => $request->ket_program,
-                'bulan'  => $request->bulan,
-                'kategori'  => $request->kategori,
-            ]);
-
+        if ($program['status'] == 'success') {
             return response()->json([
                 'status'  => 'success',
                 'message' => 'Program unit berhasil ditambahkan',
             ]);
-        } catch (\Exception $e) {
+        } else {
             return response()->json([
                 'status'  => 'error',
                 'message' => 'Terjadi kesalahan pada server',
@@ -67,45 +58,47 @@ class ProgramUnitController extends Controller
         }
     }
 
-    public function update(Request $request, $slug, $id)
+    public function storeRegularProgram(ProgramUnitRequest $request, $slug)
     {
-        $validator = Validator::make($request->all(), [
-            'nama_program' => 'required|string|max:255',
-            'ket_program'  => 'nullable|string',
-            'kategori' => 'required|in:Regular,Work Program',
-            'bulan' => 'required_if:kategori,Work Program|nullable|integer|min:1|max:12',
-        ], [
-            'nama_program.required' => 'Nama program wajib diisi',
-            'nama_program.max'      => 'Nama program maksimal 255 karakter',
-        ]);
+        $validated = $request->validated();
+        $rkap = Rkap::where('slug', $slug)->firstOrFail();
+        $result = ProgramUnitService::storeProgramUnit($validated, $rkap);
 
-        if ($validator->fails()) {
+        if ($result['status'] == 'success') {
+            $program = $result['data'];
+            return redirect()->route('program-unit-regular.template', $program->slug);
+        } else {
             return response()->json([
                 'status'  => 'error',
-                'message' => 'Validasi gagal',
-                'errors'  => $validator->errors(),
-            ], 422);
+                'message' => 'Terjadi kesalahan pada server',
+            ], 500);
         }
+    }
 
-        try {
-            $program = ProgramUnit::findOrFail($id);
-            $program->update([
-                'nama_program' => $request->nama_program,
-                'ket_program'  => $request->ket_program,
-                'bulan'  => $request->bulan,
-                'kategori'  => $request->kategori,
-            ]);
+    public function saveProgramReguler($slug)
+    {
+        $program = ProgramUnit::where('slug', $slug)->first();
+        $result = ProgramUnitService::saveProgramReguler($program);
+        if ($result['status'] == 'success') {
+            return redirect()->route('program-unit/list', $program->rkap->slug);
+        } else {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Terjadi kesalahan pada server',
+            ], 500);
+        }
+    }
 
+    public function update(ProgramUnitRequest $request, $slug, $id)
+    {
+        $validated = $request->validated();
+        $program = ProgramUnitService::updateProgramUnit($validated, $id);
+        if ($program['status'] == 'success') {
             return response()->json([
                 'status'  => 'success',
-                'message' => 'Program unit berhasil diupdate',
+                'message' => 'Program unit berhasil update',
             ]);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Data tidak ditemukan',
-            ], 404);
-        } catch (\Exception $e) {
+        } else {
             return response()->json([
                 'status'  => 'error',
                 'message' => 'Terjadi kesalahan pada server',
@@ -131,7 +124,7 @@ class ProgramUnitController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'status'  => 'error',
-                'message' => 'Gagal menghapus data',
+                'message' => 'Gagal menghapus data ' . $e->getMessage(),
             ], 500);
         }
     }

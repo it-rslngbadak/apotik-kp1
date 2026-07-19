@@ -83,8 +83,10 @@ class RkapService
 
             $data_arr[] = [
                 "periode" => $record->periode,
-                "status"  => $record->status ?? '-',
-                "modify"       => $modify,
+                "pendapatan" => $record->total_pendapatan ? number_format($record->total_pendapatan, 0, ',', '.') : '-',
+                "biaya" => $record->total_biaya ? number_format($record->total_biaya, 0, ',', '.') : '-',
+                "status" => $record->status ?? '-',
+                "modify" => $modify,
             ];
         }
 

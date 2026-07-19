@@ -93,10 +93,10 @@ class CoaService
                 "eselon" => '-',
                 "ket_coa" => $record->desc_coa,
                 "desc_transaksi"  => $record->desc_transaksi,
-                "harga_satuan"  => $record->harga_satuan,
+                "harga_satuan"  => number_format($record->harga_satuan, 0, ',', '.'),
                 "jumlah"  => $record->jumlah,
                 "satuan"  => $record->satuan,
-                "perkiraan"  => $record->total_perkiraan,
+                "perkiraan"  => number_format($record->total_perkiraan, 0, ',', '.'),
                 "modify"       => $modify,
             ];
         }

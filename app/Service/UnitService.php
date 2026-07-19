@@ -73,10 +73,6 @@ class UnitService
 
             $data_arr[] = [
                 "nama"          => $record->nama,
-                "kode_pendapatan"          => $record->kode_pendapatan,
-                "desc_pendapatan"          => $record->desc_pendapatan,
-                "kode_biaya"          => $record->kode_biaya,
-                "desc_biaya"          => $record->desc_biaya,
                 "modify"          => $modify,
             ];
         }

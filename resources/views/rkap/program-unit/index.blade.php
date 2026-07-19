@@ -92,6 +92,8 @@
                                             <th>Nama Program</th>
                                             <th>Keterangan Program</th>
                                             <th>Kategori</th>
+                                            <th>Pendapatan</th>
+                                            <th>Biaya</th>
                                             <th class="text-end">Action</th>
                                         </tr>
                                     </thead>
@@ -116,23 +118,13 @@
                 <div class="modal-body">
                     <form id="formProgramUnit">
                         <input type="hidden" id="program_id" name="id">
+                        <input type="hidden" id="kategori" name="kategori" value="Work Program">
                         <div class="mb-3">
                             <label for="nama_program" class="col-form-label">Nama Program</label>
                             <input type="text" class="form-control" id="nama_program" name="nama_program">
                             <span class="text-danger error-nama_program"></span>
                         </div>
                         <div class="mb-3">
-                            <label for="kategori" class="col-form-label">Kategori</label>
-                            <select class="form-select" name="kategori" id="kategori">
-                                <option value="" selected disabled>Pilih Kategori</option>
-                                <option value="Regular">Regular</option>
-                                <option value="Work Program">Work Program</option>
-                            </select>
-                            <span class="text-danger error-kategori"></span>
-                        </div>
-
-                        {{-- Wrapper bulan, disembunyikan default --}}
-                        <div class="mb-3" id="wrapper_bulan" style="display: none;">
                             <label for="bulan" class="col-form-label">
                                 Bulan <span class="text-danger">*</span>
                             </label>
@@ -230,6 +222,14 @@
                         name: 'kategori'
                     },
                     {
+                        data: 'pendapatan',
+                        name: 'pendapatan'
+                    },
+                    {
+                        data: 'biaya',
+                        name: 'biaya'
+                    },
+                    {
                         data: 'modify',
                         name: 'modify',
                         orderable: false,
@@ -280,26 +280,6 @@
 
             $(document).on('change', '#kategori', function() {
                 toggleBulanField($(this).val());
-            });
-
-            function toggleBulanField(kategori) {
-                const $wrapperBulan = $('#wrapper_bulan');
-                const $bulan = $('#bulan');
-
-                if (kategori === 'Work Program') {
-                    $wrapperBulan.show();
-                    $bulan.prop('required', true);
-                } else {
-                    $wrapperBulan.hide();
-                    $bulan.prop('required', false);
-                    $bulan.val(''); // reset biar gak nyangkut value lama saat submit sebagai Regular
-                }
-            }
-
-            // Pastikan state field bulan sesuai kondisi awal setiap modal dibuka
-            // (misal saat edit data Work Program, atau reset saat create baru)
-            $('#formCreate').on('shown.bs.modal', function() {
-                toggleBulanField($('#kategori').val());
             });
 
             function submitProgramUnit() {

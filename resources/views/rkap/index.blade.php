@@ -52,6 +52,8 @@
                                     <thead class="student-thread">
                                         <tr>
                                             <th>Periode</th>
+                                            <th>Pendapatan</th>
+                                            <th>Biaya</th>
                                             <th>Status</th>
                                             <th class="text-end">Action</th>
                                         </tr>
@@ -141,6 +143,14 @@
                 columns: [{
                         data: 'periode',
                         name: 'periode'
+                    },
+                    {
+                        data: 'pendapatan',
+                        name: 'pendapatan'
+                    },
+                    {
+                        data: 'biaya',
+                        name: 'biaya'
                     },
                     {
                         data: 'status',

@@ -14,7 +14,7 @@ use App\Service\CoaService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
-use Log;
+use Illuminate\Support\Facades\Log;
 
 class CoaController extends Controller
 {
@@ -36,13 +36,13 @@ class CoaController extends Controller
             $validated = $request->all();
             $program = ProgramUnit::where('slug', $slug)->firstOrFail();
             if ($request->kategori == 'Tindakan') {
-                $referensi = MasterTindakan::find($request->desc_transaksi);
+                $referensi = MasterTindakan::where('nama_tindakan', $request->desc_transaksi)->first();
                 $desc_transaksi =  $referensi ? $referensi->nama_tindakan : $request->desc_transaksi;
             } else if ($request->kategori == 'Farmalkes') {
-                $referensi = MasterFarmalkes::find($request->desc_transaksi);
+                $referensi = MasterFarmalkes::where('nama_item', $request->desc_transaksi)->first();
                 $desc_transaksi =  $referensi ? $referensi->nama_item : $request->desc_transaksi;
             } else {
-                $referensi = MasterUmum::find($request->desc_transaksi);
+                $referensi = MasterUmum::where('nama_item', $request->desc_transaksi)->first();
                 $desc_transaksi =  $referensi ? $referensi->nama_item : $request->desc_transaksi;
             }
 
@@ -85,10 +85,10 @@ class CoaController extends Controller
                 $referensi = MasterTindakan::where('nama_tindakan', $request->desc_transaksi)->first();
                 $desc_transaksi =  $referensi ? $referensi->nama_tindakan : $request->desc_transaksi;
             } else if ($request->kategori == 'Farmalkes') {
-                $referensi = MasterFarmalkes::where('nama_item', $request->desc_transaksi);
+                $referensi = MasterFarmalkes::where('nama_item', $request->desc_transaksi)->first();
                 $desc_transaksi =  $referensi ? $referensi->nama_item : $request->desc_transaksi;
             } else {
-                $referensi = MasterUmum::where('nama_item', $request->desc_transaksi);
+                $referensi = MasterUmum::where('nama_item', $request->desc_transaksi)->first();
                 $desc_transaksi =  $referensi ? $referensi->nama_item : $request->desc_transaksi;
             }
 
@@ -98,7 +98,6 @@ class CoaController extends Controller
 
             $validated['program_unit_id'] = $program->id;
             $validated['desc_transaksi'] = $desc_transaksi;
-
             $coa = CoaService::update($coa, $validated);
 
             return response()->json([
@@ -112,10 +111,10 @@ class CoaController extends Controller
                 'message' => 'Data COA tidak ditemukan',
             ], 404);
         } catch (\Throwable $e) {
-            \Log::error('CoaController@update error: ' . $e->getMessage());
+            Log::error('CoaController@update error: ' . $e->getMessage());
 
             return response()->json([
-                'message' => 'Terjadi kesalahan pada server',
+                'message' => 'Terjadi kesalahan pada server' . $e->getMessage(),
             ], 500);
         }
     }
@@ -142,7 +141,7 @@ class CoaController extends Controller
                 'message' => 'Data COA tidak ditemukan',
             ], 404);
         } catch (\Throwable $e) {
-            \Log::error('CoaController@destroy error: ' . $e->getMessage());
+            Log::error('CoaController@destroy error: ' . $e->getMessage());
 
             return response()->json([
                 'message' => 'Gagal menghapus data',

@@ -66,7 +66,7 @@ class MasterController extends Controller
                 'text' => $item->nama_item,
                 'jumlah' => 1,
                 'satuan' => $item->satuan ?? '-',
-                'harga_satuan' => number_format($item->harga_satuan, 0, ',', '.'), // sesuaikan nama kolom
+                'harga_satuan' => $item->harga_satuan ?? null, // sesuaikan nama kolom
             ]);
 
         return response()->json($data);
@@ -87,7 +87,7 @@ class MasterController extends Controller
                 'text' => $item->nama_item,
                 'jumlah' => 1,
                 'satuan' => $item->satuan ?? '-',
-                'harga_satuan' => number_format($item->harga, 0, ',', '.'),
+                'harga_satuan' => $item->harga ?? null,
             ]);
 
         return response()->json($data);

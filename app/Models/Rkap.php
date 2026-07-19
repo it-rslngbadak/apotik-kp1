@@ -19,6 +19,11 @@ class Rkap extends Model
         'slug',
     ];
 
+    protected $appends = [
+        'total_pendapatan',
+        'total_biaya'
+    ];
+
     protected static function booted()
     {
         static::creating(function (Rkap $data) {
@@ -50,6 +55,58 @@ class Rkap extends Model
     public function getRouteKeyName()
     {
         return 'slug';
+    }
+
+    public function getTotalPendapatanAttribute()
+    {
+        $total = $this->programUnit
+            ->sum('total_pendapatan');
+
+        if ($total < 100000) {
+            $factor = 1000;
+        } elseif ($total < 1000000) {
+            $factor = 10000;
+        } elseif ($total < 10000000) {
+            $factor = 100000;
+        } elseif ($total < 100000000) {
+            $factor = 1000000;
+        } elseif ($total < 1000000000) {
+            $factor = 10000000;
+        } elseif ($total < 10000000000) {
+            $factor = 100000000;
+        } elseif ($total < 100000000000) {
+            $factor = 1000000000;
+        } else {
+            $factor = 10000000000;
+        }
+
+        return round($total / $factor) * $factor;
+    }
+
+    public function getTotalBiayaAttribute()
+    {
+        $total = $this->programUnit
+            ->sum('total_biaya');
+
+        if ($total < 100000) {
+            $factor = 1000;
+        } elseif ($total < 1000000) {
+            $factor = 10000;
+        } elseif ($total < 10000000) {
+            $factor = 100000;
+        } elseif ($total < 100000000) {
+            $factor = 1000000;
+        } elseif ($total < 1000000000) {
+            $factor = 10000000;
+        } elseif ($total < 10000000000) {
+            $factor = 100000000;
+        } elseif ($total < 100000000000) {
+            $factor = 1000000000;
+        } else {
+            $factor = 10000000000;
+        }
+
+        return round($total / $factor) * $factor;
     }
 
     public function unit()

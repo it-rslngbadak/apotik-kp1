@@ -2,7 +2,11 @@
 
 namespace App\Service;
 
+use App\Models\Coa;
 use App\Models\ProgramUnit;
+use Exception;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ProgramUnitService
 {
@@ -53,7 +57,6 @@ class ProgramUnitService
             ->take($rowPerPage)
             ->get();
         $data_arr = [];
-
         foreach ($records as $record) {
             $modify = '
                 <a href="' . route('coa/list', $record->slug) . '" class="btn btn-sm bg-success-light">
@@ -79,6 +82,8 @@ class ProgramUnitService
                 "nama_program" => $record->nama_program,
                 "ket_program"  => $record->ket_program ?? '-',
                 "kategori"  => $record->kategori ?? '-',
+                "pendapatan"  => $record->total_pendapatan ? number_format($record->total_pendapatan, 0, ',', '.') : '-',
+                "biaya"  => $record->total_biaya ? number_format($record->total_biaya, 0, ',', '.') : '-',
                 "modify"       => $modify,
             ];
         }
@@ -89,5 +94,133 @@ class ProgramUnitService
             "iTotalDisplayRecords" => $totalRecordsWithFilter,
             "data"                 => $data_arr,
         ];
+    }
+
+    public static function storeProgramUnit($data, $rkap)
+    {
+        DB::beginTransaction();
+        try {
+            $program = ProgramUnit::create([
+                'rkap_id'      => $rkap->id,
+                'nama_program' => $data['nama_program'],
+                'ket_program'  => $data['ket_program'] ?? null,
+                'bulan'  => $data['bulan'] ?? null,
+                'kategori'  => $data['kategori'],
+            ]);
+            DB::commit();
+            return [
+                'status' => 'success',
+                'data' => $program,
+            ];
+        } catch (\Throwable $th) {
+            DB::rollback();
+            Log::error($th->getMessage());
+            return [
+                'status' => 'failed',
+                'message' => $th->getMessage(),
+            ];
+        }
+    }
+
+    public static function updateProgramUnit($data, $id)
+    {
+        DB::beginTransaction();
+        try {
+            $program = ProgramUnit::findOrFail($id);
+            $program->update([
+                'nama_program' => $data['nama_program'],
+                'ket_program'  => $data['ket_program'],
+                'bulan'  => $data['bulan'],
+                'kategori'  => $data['kategori'],
+            ]);
+            DB::commit();
+            return [
+                'status'  => 'success',
+                'data' => $program,
+            ];
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollBack();
+            return [
+                'status'  => 'error',
+                'message' => 'Data tidak ditemukan',
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage());
+            return [
+                'status'  => 'error',
+                'message' => 'Terjadi kesalahan pada server',
+            ];
+        }
+    }
+
+    public static function storeProgramUnitRegular($data, $rkap)
+    {
+        DB::beginTransaction();
+        try {
+            $program = ProgramUnit::create([
+                'rkap_id'      => $rkap->id,
+                'nama_program' => $data['nama_program'],
+                'ket_program'  => $data['ket_program'],
+                'kategori'  => $data['kategori'],
+            ]);
+            DB::commit();
+            return [
+                'status' => 'success',
+                'data' => $program,
+            ];
+        } catch (\Throwable $th) {
+            DB::rollback();
+            Log::error($th->getMessage());
+            return [
+                'status' => 'failed',
+                'message' => $th->getMessage(),
+            ];
+        }
+    }
+
+    public static function saveProgramReguler($program)
+    {
+        DB::beginTransaction();
+        try {
+            $program->update([
+                'bulan' => '1'
+            ]);
+            for ($i = 2; $i <= 12; $i++) {
+                $newProgram = ProgramUnit::create([
+                    'rkap_id'      => $program->rkap_id,
+                    'nama_program' => $program->nama_program,
+                    'ket_program'  => $program->ket_program,
+                    'bulan'  => $i,
+                    'kategori'  => $program->kategori,
+                ]);
+                foreach ($program->coa as $value) {
+                    Coa::create([
+                        'program_unit_id'   => $newProgram->id,
+                        'kode_transaksi_id' => $value->kode_transaksi_id,
+                        'kategori'            => $value->kategori,
+                        'desc_transaksi'    => $value->desc_transaksi,
+                        'jumlah'            => $value->jumlah,
+                        'satuan'            => $value->satuan,
+                        'harga_satuan'      => $value->harga_satuan,
+                        'jenis_coa'         => $value->jenis_coa,
+                        'eselon'            => $value->eselon,
+                        'jenis_tarif'            => $value->jenis_tarif,
+                        'status'            => 'Pending', // default, sesuaikan kalau ada value lain di DB
+                    ]);
+                }
+            }
+            DB::commit();
+            return [
+                'status' => 'success'
+            ];
+        } catch (\Exception $th) {
+            DB::rollback();
+            Log::error($th->getMessage());
+            return [
+                'status' => 'failed',
+                'message' => $th->getMessage(),
+            ];
+        }
     }
 }

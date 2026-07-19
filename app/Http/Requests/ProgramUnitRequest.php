@@ -11,7 +11,7 @@ class ProgramUnitRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,18 @@ class ProgramUnitRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'nama_program' => 'required|string|max:255',
+            'ket_program'  => 'nullable|string',
+            'kategori' => 'required|in:Regular,Work Program',
+            'bulan' => 'required_if:kategori,Work Program|nullable|integer|min:1|max:12',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'nama_program.required' => 'Nama program wajib diisi',
+            'nama_program.max'      => 'Nama program maksimal 255 karakter',
         ];
     }
 }
