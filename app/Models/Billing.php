@@ -208,23 +208,23 @@ class Billing extends Model
             ->where('no_reg', $this->no_registrasi)
             // ->where('payment', NULL)
             ->get();
-
+        $dataEmbalace = [];
         if ($embalace->count() == 0) {
-            $dataEmbalace['ppn'] = $resepRawatJalan->sum(fn($b) => $b->harga_jual * $b->jumlah_dijual) * (11 / 100);
+            $dataEmbalace['ppn'] = $resepRawatJalan->sum(fn($b) => round($b->harga_jual) * $b->jumlah_dijual) * (11 / 100);
         } else {
-            $dataEmbalace['ppn'] = $embalace->sum(fn($b) => $b->ppn) - $embalace->sum(fn($b) => $b->ppn_share);
+            $dataEmbalace['ppn'] = $embalace->sum(fn($b) => round($b->ppn)) - $embalace->sum(fn($b) => round($b->ppn_share));
         }
-
-        $totalEselon = ($tindakan->sum('total_biaya')) + ($alkes->sum('total_biaya')) + ($resepRawatJalan->sum('total_biaya')) + ($resepRawatInap->sum('total_biaya')) + ($kamar->sum('total_biaya')) + (int) ($dataEmbalace['ppn']);
-        if ($resepRawatInap->count() > 0 || $kamar->count() > 0) {
-            $ref_adm = ReferensiAdmSimrs::select(['besar_fee', 'max_besar'])->where('kode_eselon', $this->eselon->nama)->first();
-            $biayaAdm = $kamar->sum('tarif_sewa') == 0 ? 0 : round($totalEselon * ($ref_adm->besar_fee / 100));
-            $total = $totalEselon + $biayaAdm;
-            if ($biayaAdm > $ref_adm->max_besar) {
-                $totalEselon = $totalEselon + ($ref_adm->max_besar);
-            } else {
-                $totalEselon = $total;
-            }
+        $totalEselon = (round($tindakan->sum('total_biaya'))) + (round($alkes->sum('total_biaya'))) + (round($resepRawatJalan->sum('total_biaya'))) + (round($resepRawatInap->sum('total_biaya'))) + (round($kamar->sum('total_biaya'))) + (int) round($dataEmbalace['ppn']);
+        $ketKamar = $kamar->filter(function ($item) {
+            return str_contains(strtolower($item->keterangan), 'meninggal');
+        })->count();
+        if (($resepRawatInap->count() > 0 || $kamar->count() > 0) && !($this->eselon->nama == 'DNPPKB')) {
+            $billingCreated = BillingNonKasEnamSimrs::select(['tanggal', 'total', 'total_disc'])
+                ->where('kode_transaksi', '000002')
+                ->where('reg_no', $this->no_registrasi)
+                ->first();
+            $totalBiayaAdm = $billingCreated ? $billingCreated->total - $billingCreated->total_disc : 0;
+            $totalEselon = $totalEselon + $totalBiayaAdm;
         }
 
         return $totalEselon;

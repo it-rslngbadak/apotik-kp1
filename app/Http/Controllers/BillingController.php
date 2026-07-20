@@ -111,8 +111,11 @@ class BillingController extends Controller
                 'biaya' => $biayaAdm,
             ];
         }
+        $deposit = $billing->biaya_deposit ?? $billing->deposit;
+        $total_eselon = $billing->biaya_eselon ?? $billing->total_biaya_eselon;
+        $total_biaya_sp3 = $total_eselon - $deposit - $billing->cob;
 
-        return view('tindakan.detail-list-tindakan', compact('billing', 'tindakan', 'alkes', 'resepRawatInap', 'resepRawatJalan', 'kamar', 'embalace', 'dataBiayaAdm'));
+        return view('tindakan.detail-list-tindakan', compact('billing', 'tindakan', 'alkes', 'resepRawatInap', 'resepRawatJalan', 'kamar', 'embalace', 'dataBiayaAdm', 'total_biaya_sp3'));
     }
 
     public function store(BillingRequest $request)
