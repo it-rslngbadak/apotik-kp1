@@ -86,7 +86,7 @@ class BillingController extends Controller
             return str_contains(strtolower($item->keterangan), 'meninggal');
         })->count();
         $dataBiayaAdm = [];
-        if (($resepRawatInap->count() > 0 || $kamar->count() > 0) && !($ketKamar > 0) && !($billing->eselon->nama == 'DNPPKB')) {
+        if (($resepRawatInap->count() > 0 || $kamar->count() > 0) && !($billing->eselon->nama == 'DNPPKB')) {
             $billingCreated = BillingNonKasEnamSimrs::select(['tanggal', 'total', 'total_disc'])
                 ->where('kode_transaksi', '000002')
                 ->where('reg_no', $billing->no_registrasi)

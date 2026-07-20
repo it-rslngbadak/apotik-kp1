@@ -130,7 +130,7 @@ class Billing extends Model
         $ketKamar = $kamar->filter(function ($item) {
             return str_contains(strtolower($item->keterangan), 'meninggal');
         })->count();
-        if (($resepRawatInap->count() > 0 || $kamar->count() > 0) && !($ketKamar > 0) && !($this->eselon->nama == 'DNPPKB')) {
+        if (($resepRawatInap->count() > 0 || $kamar->count() > 0) && !($this->eselon->nama == 'DNPPKB')) {
             $billingCreated = BillingNonKasEnamSimrs::select(['tanggal', 'total', 'total_disc'])
                 ->where('kode_transaksi', '000002')
                 ->where('reg_no', $this->no_registrasi)
