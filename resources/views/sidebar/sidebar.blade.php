@@ -65,6 +65,32 @@
                         </ul>
                     </li>
                 @endif
+                @if (Session::get('role_name') === 'PIC Unit' ||
+                        Session::get('role_name') === 'Keuangan Admin' ||
+                        Session::get('role_name') === 'Super Admin' ||
+                        Session::get('role_name') === 'Admin')
+                    <li
+                        class="submenu {{ set_active(['sp3-verifikasi*']) }} {{ request()->is('sp3-verifikasi/*') ? 'active' : '' }}">
+                        <a href="#">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>RKAP</span>
+                            <span class="menu-arrow"></span>
+                        </a>
+                        <ul>
+                            {{-- <li><a href="{{ route('billing-verifikasi/list') }}" class="{{set_active(['billing-verifikasi/list'])}} {{ (request()->is('billing/edit/*')) ? 'active' : '' }}">List Billing</a></li> --}}
+                            <li><a href="{{ route('unit/list') }}"
+                                    class="{{ set_active(['rkap*']) }} {{ request()->is('rkap/*') ? 'active' : '' }}">List
+                                    Unit</a></li>
+                            {{-- <li><a href="{{ route('billing-verifikasi/list') }}" class="{{set_active(['billing-verifikasi/list'])}} {{ (request()->is('billing/edit/*')) ? 'active' : '' }}">List Billing</a></li> --}}
+                            <li><a href="{{ route('pendapatan/list') }}"
+                                    class="{{ set_active(['rkap/ref-pendapatan*']) }} {{ request()->is('rkap/ref-pendapatan*') ? 'active' : '' }}">Referensi
+                                    Pendapatan</a></li>
+                            <li><a href="{{ route('biaya/list') }}"
+                                    class="{{ set_active(['rkap/ref-biaya*']) }} {{ request()->is('rkap/ref-biaya*') ? 'active' : '' }}">Referensi
+                                    Biaya</a></li>
+                        </ul>
+                    </li>
+                @endif
                 @if (Session::get('role_name') === 'Admin' || Session::get('role_name') === 'Super Admin')
                     <li
                         class="submenu {{ set_active(['list/users']) }} {{ request()->is('view/user/edit/*') ? 'active' : '' }}">
@@ -80,7 +106,6 @@
                         </ul>
                     </li>
                 @endif
-
                 {{-- <li
                     class="submenu {{ set_active(['student/list', 'student/grid', 'student/add/page']) }} {{ request()->is('student/edit/*') ? 'active' : '' }} {{ request()->is('student/profile/*') ? 'active' : '' }}">
                     <a href="#"><i class="fas fa-graduation-cap"></i>
