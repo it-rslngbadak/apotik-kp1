@@ -106,7 +106,10 @@ class Billing extends Model
             ->get();
         $resepRawatJalan = TransaksiResepSimrs::select(['regnum', 'jumlah_dijual', 'harga_jual', 'discount', 'payment', 'farmalkes_id'])
             ->where('regnum', $this->no_registrasi)
-            ->where('payment', NULL)
+            ->where(function ($query) {
+                $query->whereNull('payment')
+                    ->orWhere('payment', '');
+            })
             ->get();
         $resepRawatInap = KipKirimanSimrs::select(['no_reg', 'farmalkes_id', 'jumlah_kiriman', 'kiriman_id', 'payment', 'harga', 'discount'])
             ->where('no_reg', $this->no_registrasi)
@@ -194,7 +197,10 @@ class Billing extends Model
             ->get();
         $resepRawatJalan = TransaksiResepSimrs::select(['regnum', 'jumlah_dijual', 'harga_jual', 'discount', 'payment', 'farmalkes_id'])
             ->where('regnum', $this->no_registrasi)
-            ->where('payment', NULL)
+            ->where(function ($query) {
+                $query->whereNull('payment')
+                    ->orWhere('payment', '');
+            })
             ->get();
         $resepRawatInap = KipKirimanSimrs::select(['no_reg', 'farmalkes_id', 'jumlah_kiriman', 'kiriman_id', 'payment', 'harga', 'discount'])
             ->where('no_reg', $this->no_registrasi)

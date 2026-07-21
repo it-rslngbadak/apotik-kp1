@@ -59,7 +59,10 @@ class BillingController extends Controller
         // dd($alkes);
         $resepRawatJalan = TransaksiResepSimrs::select(['regnum', 'jumlah_dijual', 'harga_jual', 'discount', 'payment', 'farmalkes_id'])
             ->where('regnum', $billing->no_registrasi)
-            ->where('payment', NULL)
+            ->where(function ($query) {
+                $query->whereNull('payment')
+                    ->orWhere('payment', '');
+            })
             ->get();
         // dd($resepRawatJalan);
         $resepRawatInap = KipKirimanSimrs::select(['no_reg', 'farmalkes_id', 'jumlah_kiriman', 'kiriman_id', 'payment', 'harga', 'discount'])
