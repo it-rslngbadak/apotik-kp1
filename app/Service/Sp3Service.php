@@ -179,7 +179,7 @@ class Sp3Service
 
         $dari_tgl = $request->get('dari_tgl')
             ? \Carbon\Carbon::createFromFormat('d-m-Y', $request->get('dari_tgl'))->startOfDay()
-            : \Carbon\Carbon::now()->subDays(30)->startOfDay();
+            : \Carbon\Carbon::now()->subDays(90)->startOfDay();
 
         $sampai_tgl = $request->get('sampai_tgl')
             ? \Carbon\Carbon::createFromFormat('d-m-Y', $request->get('sampai_tgl'))->endOfDay()
