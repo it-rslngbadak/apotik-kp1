@@ -29,6 +29,18 @@
                                         <h3 class="page-title">List Rincian Program {{ $program->nama_program }}</h3>
                                     </div>
                                     <div class="col-auto text-end float-end ms-auto download-grp">
+                                        <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                                            data-bs-target="#referensiKodeTransaksi">
+                                            Kode Transaksi
+                                        </button>
+                                        <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                                            data-bs-target="#referensiPendapatan">
+                                            Ref Pendapatan
+                                        </button>
+                                        <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                                            data-bs-target="#referensiBiaya">
+                                            Ref Biaya
+                                        </button>
                                         <a href="{{ route('coa/list', $program->slug) }}"
                                             class="btn btn-outline-gray me-2 active">
                                             <i class="fa fa-list" aria-hidden="true"></i>
@@ -52,9 +64,9 @@
                                 <table class="table table-stripped table table-hover table-center mb-0" id="CoaList">
                                     <thead class="student-thread">
                                         <tr>
-                                            <th>Kode COA</th>
+                                            <th>Kode Transaksi</th>
                                             <th>Eselon</th>
-                                            <th>Keterangan COA</th>
+                                            <th>Keterangan Transaksi</th>
                                             <th>Uraian</th>
                                             <th>Harga Satuan</th>
                                             <th>Jumlah</th>
@@ -78,7 +90,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="formCreateLabel">Buat COA</h1>
+                    <h1 class="modal-title fs-5" id="formCreateLabel">Buat Transaksi</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -88,7 +100,7 @@
 
                         {{-- Jenis COA --}}
                         <div class="mb-3">
-                            <label class="form-label d-block">Jenis COA</label>
+                            <label class="form-label d-block">Jenis Kode Transkasi</label>
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input" type="radio" name="jenis_coa" id="pendapatan"
                                     value="Pendapatan" x-model="jenisCoa">
@@ -185,7 +197,7 @@
 
                         {{-- COA / Kode Transaksi --}}
                         <div class="mb-3">
-                            <label for="kode_transaksi_id" class="col-form-label">COA</label>
+                            <label for="kode_transaksi_id" class="col-form-label">Kode Transaksi</label>
                             <select class="form-select" id="kode_transaksi_id" name="kode_transaksi_id"
                                 style="width:100%"></select>
                             <span class="text-danger error-kode_transaksi_id"></span>
@@ -227,6 +239,147 @@
                             </form>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Referensi Biaya -->
+    <div class="modal fade" id="referensiBiaya" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Referensi Biaya</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {{-- Form Filter --}}
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="filterBiayaUnit" class="form-label">Unit</label>
+                            <select id="filterBiayaUnit" class="form-control select2" style="width: 100%;">
+                                <option value="">-- Pilih Unit --</option>
+                                @foreach ($biayaUnits as $unit)
+                                    <option value="{{ $unit->nama_unit }}">{{ $unit->nama_unit }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="button" id="btnFilterRefBiaya" class="btn btn-primary w-100">
+                                <i class="fa fa-search"></i> Filter
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-stripped table table-hover table-center mb-0 w-100" id="RefBiayaList">
+                            <thead class="student-thread">
+                                <tr>
+                                    <th>Nama Transaksi</th>
+                                    <th>Jumlah</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal Referensi Pendapatan -->
+    <div class="modal fade" id="referensiPendapatan" tabindex="-1" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Referensi Pendapatan</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {{-- Form Filter --}}
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="filterPendapatanUnit" class="form-label">Unit</label>
+                            <select id="filterPendapatanUnit" class="form-control select2" style="width: 100%;">
+                                <option value="">-- Pilih Unit --</option>
+                                @foreach ($pendapatanUnits as $unit)
+                                    <option value="{{ $unit->nama_unit }}">{{ $unit->nama_unit }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="button" id="btnFilterRefPendapatan" class="btn btn-primary w-100">
+                                <i class="fa fa-search"></i> Filter
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-stripped table table-hover table-center mb-0 w-100"
+                            id="RefPendapatanList">
+                            <thead class="student-thread">
+                                <tr>
+                                    <th>COA</th>
+                                    <th>Nama Transaksi</th>
+                                    <th>Cara Bayar</th>
+                                    <th>Jumlah</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Referensi Kode Transaksi/COA -->
+    <div class="modal fade" id="referensiKodeTransaksi" tabindex="-1" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Referensi Kode Transaksi</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {{-- Form Filter --}}
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="filterJenisKodeTransaksi" class="form-label">Jenis Kode Transaksi</label>
+                            <select id="filterJenisKodeTransaksi" class="form-control select2" style="width: 100%;">
+                                <option value="">-- Pilih Jenis Kode Transaksi --</option>
+                                <option value="Pendapatan">Pendapatan</option>
+                                <option value="Biaya">Biaya</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="button" id="btnFilterKodeTransaksi" class="btn btn-primary w-100">
+                                <i class="fa fa-search"></i> Filter
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-stripped table table-hover table-center mb-0 w-100"
+                            id="RefKodeTransaksiList">
+                            <thead class="student-thread">
+                                <tr>
+                                    <th>Kode Transaksi</th>
+                                    <th>Nama Transaksi</th>
+                                    <th>Definisi</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -286,6 +439,108 @@
                 ]
             });
 
+            let tableRefBiaya = $('#RefBiayaList').DataTable({
+                processing: true,
+                serverSide: true,
+                ordering: true,
+                searching: true,
+                order: [],
+                ajax: {
+                    url: "{{ route('get-biayas-data') }}",
+                    cache: false,
+                    data: function(d) {
+                        d.nama_unit = $('#filterBiayaUnit').val();
+                    }
+                },
+                columns: [{
+                        data: 'nama_transaksi',
+                        name: 'nama_transaksi'
+                    },
+                    {
+                        data: 'jumlah',
+                        name: 'jumlah'
+                    }
+                ]
+            });
+
+            // Reload data saat tombol filter diklik
+            $('#btnFilterRefBiaya').on('click', function() {
+                tableRefBiaya.ajax.reload();
+            });
+
+            let tableRefPendapatan = $('#RefPendapatanList').DataTable({
+                processing: true,
+                serverSide: true,
+                ordering: true,
+                searching: true,
+                order: [],
+                ajax: {
+                    url: "{{ route('get-pendapatans-data') }}",
+                    cache: false,
+                    data: function(d) {
+                        d.nama_unit = $('#filterPendapatanUnit').val();
+                    }
+                },
+                columns: [{
+                        data: 'coa_pendapatan',
+                        name: 'coa_pendapatan'
+                    },
+                    {
+                        data: 'nama_transaksi',
+                        name: 'nama_transaksi'
+                    },
+                    {
+                        data: 'cara_bayar',
+                        name: 'cara_bayar'
+                    },
+                    {
+                        data: 'jumlah',
+                        name: 'jumlah'
+                    },
+                    {
+                        data: 'total',
+                        name: 'total'
+                    },
+                ]
+            });
+            // Reload data saat tombol filter diklik
+            $('#btnFilterRefPendapatan').on('click', function() {
+                tableRefPendapatan.ajax.reload();
+            });
+
+            let tableRefKodeTransaksi = $('#RefKodeTransaksiList').DataTable({
+                processing: true,
+                serverSide: true,
+                ordering: true,
+                searching: true,
+                order: [],
+                ajax: {
+                    url: "{{ route('get-kode-transaksi-data') }}",
+                    cache: false,
+                    data: function(d) {
+                        d.jenis_kode = $('#filterJenisKodeTransaksi').val();
+                    }
+                },
+                columns: [{
+                        data: 'kode',
+                        name: 'kode'
+                    },
+                    {
+                        data: 'nama_transaksi',
+                        name: 'nama_transaksi'
+                    },
+                    {
+                        data: 'desc',
+                        name: 'desc'
+                    },
+                ]
+            });
+            // Reload data saat tombol filter diklik
+            $('#btnFilterKodeTransaksi').on('click', function() {
+                tableRefKodeTransaksi.ajax.reload();
+            });
+
+
             // ================== HELPER SELECT2 DINAMIS ==================
 
             function destroySelect2(selector) {
@@ -315,6 +570,7 @@
                         dataType: 'json',
                         delay: 300,
                         data: function(params) {
+                            console.log(params);
                             return {
                                 q: params.term,
                                 eselon: $('#eselon').val(),
@@ -322,6 +578,7 @@
                             };
                         },
                         processResults: function(data) {
+                            console.log(data);
                             return {
                                 results: data
                             };
@@ -440,7 +697,7 @@
             $('button[data-bs-target="#formCreate"]').on('click', function() {
                 $('#formCoa')[0].reset();
                 $('#coa_id').val(''); // pastikan ada hidden input #coa_id di form untuk mode edit
-                $('#formCreateLabel').text('Buat COA');
+                $('#formCreateLabel').text('Buat Transaksi');
                 resetDynamicFields();
             });
 
@@ -450,7 +707,7 @@
                 console.log(id);
 
                 $('#coa_id').val(id);
-                $('#formCreateLabel').text('Edit COA');
+                $('#formCreateLabel').text('Edit Transaksi');
 
                 $('input[name="jenis_coa"][value="' + $(this).data('jenis_coa') + '"]').prop('checked',
                     true);

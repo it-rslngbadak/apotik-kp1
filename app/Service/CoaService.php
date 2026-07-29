@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Models\Coa;
+use App\Models\KodeTransaksi;
 use Brian2694\Toastr\Facades\Toastr;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -98,6 +99,65 @@ class CoaService
                 "satuan"  => $record->satuan,
                 "perkiraan"  => number_format($record->total_perkiraan, 0, ',', '.'),
                 "modify"       => $modify,
+            ];
+        }
+
+        return [
+            "draw"            => intval($draw),
+            "recordsTotal"    => $totalRecords,
+            "recordsFiltered" => $totalRecordsWithFilter,
+            "data"            => $data_arr,
+        ];
+    }
+
+    public static function getRefKodeTransaksiData($request)
+    {
+        $draw            = $request->get('draw');
+        $start           = $request->get("start");
+        $rowPerPage      = $request->get("length");
+        $columnIndex_arr = $request->get('order');
+        $columnName_arr  = $request->get('columns');
+        $order_arr       = $request->get('order');
+        $search_arr      = $request->get('search');
+
+        $columnIndex     = $columnIndex_arr[0]['column'] ?? null;
+        $columnName      = $columnIndex !== null ? $columnName_arr[$columnIndex]['data'] : null;
+        $columnSortOrder = $order_arr[0]['dir'] ?? 'asc';
+        $searchValue     = strtoupper($search_arr['value']);
+
+        // ✅ Closure filter reusable
+        $searchFilter = function ($query) use ($searchValue) {
+            $query->whereRaw('UPPER(kode) like ?', ['%' . $searchValue . '%'])
+                ->orWhereRaw('UPPER(nama_transaksi) like ?', ['%' . $searchValue . '%'])
+                ->orWhereRaw('UPPER("desc") like ?', ['%' . $searchValue . '%']);
+        };
+        // ✅ Base query
+        $baseQuery = KodeTransaksi::where('jenis_kode', $request->jenis_code);
+        $totalRecords = KodeTransaksi::count();
+
+        $totalRecordsWithFilter = (clone $baseQuery)
+            ->where($searchFilter)
+            ->count();
+
+        $query = (clone $baseQuery)
+            ->where($searchFilter);
+
+        if ($columnName) {
+            $query->orderBy($columnName, $columnSortOrder);
+        }
+
+        $records = $query
+            ->orderBy('kode', 'ASC')
+            ->skip($start)
+            ->take($rowPerPage)
+            ->get();
+
+        $data_arr = [];
+        foreach ($records as $record) {
+            $data_arr[] = [
+                "kode" => $record->kode,
+                "nama_transaksi" => $record->nama_transaksi,
+                "desc" => $record->desc,
             ];
         }
 

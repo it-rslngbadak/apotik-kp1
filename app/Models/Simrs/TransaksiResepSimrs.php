@@ -8,42 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class TransaksiResepSimrs extends Model
 {
     use HasFactory;
-
     protected $connection = 'odbc';
+
     protected $table = 'transaksi_resep';
-
-    protected $appends = [
-        'nama_tindakan',
-        'jumlah',
-        'total_biaya',
-        'jenis_tindakan',
-    ];
-
-    public function getNamaTindakanAttribute()
-    {
-        $tindakan = is_null($this->payment)
-            ? optional($this->farmalkes)->farmalkes_desc
-            : '-';
-        return $tindakan;
-    }
-
-    public function getTotalBiayaAttribute(): int
-    {
-        $total = round((int)$this->jumlah_dijual * round($this->harga_jual));
-        $discount = round($total * ((int)$this->discount / 100));
-        $total_biaya = $total - $discount;
-        return $total_biaya;
-    }
-
-    public function getJumlahAttribute()
-    {
-        return number_format($this->jumlah_dijual, 0, ',', '.');;
-    }
-
-    public function getJenisTindakanAttribute()
-    {
-        return 'Resep';
-    }
 
     public function farmalkes()
     {

@@ -5,16 +5,6 @@
                 <li class="menu-title">
                     <span>Main Menu</span>
                 </li>
-                {{-- <li class="submenu {{set_active(['setting/page'])}}">
-                    <a href="#"><i class="fas fa-cog"></i>
-                        <span> Settings</span>
-                        <span class="menu-arrow"></span>
-                    </a>
-                    <ul>
-                        <li><a href="{{ route('setting/page') }}"  class="{{set_active(['setting/page'])}}">General Settings</a></li>
-                    </ul>
-                </li> --}}
-
                 <li class="submenu {{ set_active(['home', 'teacher/dashboard', 'student/dashboard']) }}">
                     <a>
                         <i class="fas fa-tachometer-alt"></i>
@@ -23,34 +13,26 @@
                     </a>
                     <ul>
                         <li><a href="{{ route('home') }}" class="{{ set_active(['home']) }}">Admin Dashboard</a></li>
-                        {{-- <li><a href="{{ route('teacher/dashboard') }}"
-                                class="{{ set_active(['teacher/dashboard']) }}">Teacher Dashboard</a></li>
-                        <li><a href="{{ route('student/dashboard') }}"
-                                class="{{ set_active(['student/dashboard']) }}">Student Dashboard</a></li> --}}
                     </ul>
                 </li>
                 @if (Session::get('role_name') === 'PIC Verifikator' ||
                         Session::get('role_name') === 'Pengawas Verifikator' ||
                         Session::get('role_name') === 'Super Admin' ||
                         Session::get('role_name') === 'Admin')
-                    <li
-                        class="submenu {{ set_active(['sp3-verifikasi*']) }} {{ request()->is('sp3-verifikasi/*') ? 'active' : '' }}">
+                    <li class="submenu {{ set_active(['kasir*']) }} {{ request()->is('kasir/*') ? 'active' : '' }}">
                         <a href="#">
                             <i class="fas fa-shield-alt"></i>
-                            <span>Unit Verifikasi</span>
+                            <span>Apotik</span>
                             <span class="menu-arrow"></span>
                         </a>
                         <ul>
-                            {{-- <li><a href="{{ route('billing-verifikasi/list') }}" class="{{set_active(['billing-verifikasi/list'])}} {{ (request()->is('billing/edit/*')) ? 'active' : '' }}">List Billing</a></li> --}}
-                            <li><a href="{{ route('sp3-verifikasi/list') }}"
-                                    class="{{ set_active(['sp3-verifikasi*']) }} {{ request()->is('sp3-verifikasi/*') ? 'active' : '' }}">List
-                                    SP3</a></li>
+                            <li><a href="{{ route('list-customers') }}"
+                                    class="{{ set_active(['kasir*']) }} {{ request()->is('kasir/*') ? 'active' : '' }}">Kasir</a>
+                            </li>
                         </ul>
                     </li>
                 @endif
-                @if (Session::get('role_name') === 'Keuangan Admin' ||
-                        Session::get('role_name') === 'Super Admin' ||
-                        Session::get('role_name') === 'Admin')
+                {{-- @if (Session::get('role_name') === 'Keuangan Admin' || Session::get('role_name') === 'Super Admin' || Session::get('role_name') === 'Admin')
                     <li
                         class="submenu {{ set_active(['sp3-keuangan*']) }} {{ request()->is('sp3-keuangan/*') ? 'active' : '' }}">
                         <a href="#">
@@ -65,10 +47,7 @@
                         </ul>
                     </li>
                 @endif
-                @if (Session::get('role_name') === 'PIC Unit' ||
-                        Session::get('role_name') === 'Keuangan Admin' ||
-                        Session::get('role_name') === 'Super Admin' ||
-                        Session::get('role_name') === 'Admin')
+                @if (Session::get('role_name') === 'PIC Unit' || Session::get('role_name') === 'Keuangan Admin' || Session::get('role_name') === 'Super Admin' || Session::get('role_name') === 'Admin')
                     <li
                         class="submenu {{ set_active(['sp3-verifikasi*']) }} {{ request()->is('sp3-verifikasi/*') ? 'active' : '' }}">
                         <a href="#">
@@ -77,11 +56,11 @@
                             <span class="menu-arrow"></span>
                         </a>
                         <ul>
-                            {{-- <li><a href="{{ route('billing-verifikasi/list') }}" class="{{set_active(['billing-verifikasi/list'])}} {{ (request()->is('billing/edit/*')) ? 'active' : '' }}">List Billing</a></li> --}}
+                            <li><a href="{{ route('billing-verifikasi/list') }}" class="{{set_active(['billing-verifikasi/list'])}} {{ (request()->is('billing/edit/*')) ? 'active' : '' }}">List Billing</a></li>
                             <li><a href="{{ route('unit/list') }}"
                                     class="{{ set_active(['rkap*']) }} {{ request()->is('rkap/*') ? 'active' : '' }}">List
                                     Unit</a></li>
-                            {{-- <li><a href="{{ route('billing-verifikasi/list') }}" class="{{set_active(['billing-verifikasi/list'])}} {{ (request()->is('billing/edit/*')) ? 'active' : '' }}">List Billing</a></li> --}}
+                            <li><a href="{{ route('billing-verifikasi/list') }}" class="{{set_active(['billing-verifikasi/list'])}} {{ (request()->is('billing/edit/*')) ? 'active' : '' }}">List Billing</a></li>
                             <li><a href="{{ route('pendapatan/list') }}"
                                     class="{{ set_active(['rkap/ref-pendapatan*']) }} {{ request()->is('rkap/ref-pendapatan*') ? 'active' : '' }}">Referensi
                                     Pendapatan</a></li>
@@ -105,7 +84,7 @@
                                     Users</a></li>
                         </ul>
                     </li>
-                @endif
+                @endif --}}
                 {{-- <li
                     class="submenu {{ set_active(['student/list', 'student/grid', 'student/add/page']) }} {{ request()->is('student/edit/*') ? 'active' : '' }} {{ request()->is('student/profile/*') ? 'active' : '' }}">
                     <a href="#"><i class="fas fa-graduation-cap"></i>
@@ -124,7 +103,7 @@
                     </ul>
                 </li> --}}
 
-                <li class="submenu  {{ set_active(['eselon/*']) }} {{ request()->is('eselon/*') ? 'active' : '' }}">
+                {{-- <li class="submenu  {{ set_active(['eselon/*']) }} {{ request()->is('eselon/*') ? 'active' : '' }}">
                     <a href="#"><i class="fas fa-chalkboard-teacher"></i>
                         <span> Data Master</span>
                         <span class="menu-arrow"></span>
@@ -136,11 +115,8 @@
                         </li>
                         <li><a href="{{ route('sub-layanan/list') }}" class="{{ set_active(['sub-layanan/*']) }}">Sub
                                 Layanan</a></li>
-
-                        {{-- <li><a href="{{}}" class="{{set_active(['teacher/add/page'])}}">Teacher Add</a></li>
-                        <li><a class="{{ (request()->is('teacher/edit/*')) ? 'active' : '' }}">Teacher Edit</a></li> --}}
                     </ul>
-                </li>
+                </li> --}}
                 {{--
                 <li class="submenu {{set_active(['department/add/page','department/edit/page'])}} {{ request()->is('department/edit/*') ? 'active' : '' }}">
                     <a href="#"><i class="fas fa-building"></i>

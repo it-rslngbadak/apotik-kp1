@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Billing;
+use App\Models\Customer;
 use App\Models\Sp3;
 use Illuminate\Http\Request;
 
@@ -26,8 +27,7 @@ class HomeController extends Controller
     /** home dashboard */
     public function index()
     {
-        $sp3s = Sp3::whereYear('tgl_sp3', date('Y'))->get();
-        $billings = Billing::whereYear('tanggal_masuk', date('Y'))->get();
+        $customers = Customer::whereYear('tanggal_registrasi', date('Y'))->get();
         $bulan = [
             'January',
             'February',
@@ -43,15 +43,11 @@ class HomeController extends Controller
             'December'
         ];
 
-        $dataSp3 = $sp3s->groupBy(function ($item) {
-            return \Carbon\Carbon::parse($item->tgl_sp3)->format('F');
+        $dataCostumers = $customers->groupBy(function ($item) {
+            return \Carbon\Carbon::parse($item->tanggal_registrasi)->format('F');
         })->map->count();
-        $dataBilling = $billings->groupBy(function ($item) {
-            return \Carbon\Carbon::parse($item->tanggal_masuk)->format('F');
-        })->map->count();
-        $nilaiSp3 = collect($bulan)->map(fn($b) => $dataSp3[$b] ?? 0)->values();
-        $nilaiBilling = collect($bulan)->map(fn($b) => $dataBilling[$b] ?? 0)->values();
-        return view('dashboard.home', compact('bulan', 'sp3s', 'billings', 'nilaiSp3', 'nilaiBilling'));
+        $nilaiCustomer = collect($bulan)->map(fn($b) => $dataCustomers[$b] ?? 0)->values();
+        return view('dashboard.home', compact('bulan', 'customers', 'nilaiCustomer'));
     }
     /** profile user */
     public function userProfile()

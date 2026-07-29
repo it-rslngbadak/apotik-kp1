@@ -10,5 +10,6 @@ class FarmalkesSimrs extends Model
     use HasFactory;
 
     protected $connection = 'odbc';
+
     protected $table = 'farmalkes';
 }

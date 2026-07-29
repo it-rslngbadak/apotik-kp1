@@ -10,23 +10,34 @@ use App\Models\MasterFarmalkes;
 use App\Models\MasterTindakan;
 use App\Models\MasterUmum;
 use App\Models\ProgramUnit;
+use App\Models\RefBiayaUnit;
+use App\Models\RefPendapatanUnit;
+use App\Models\Unit;
 use App\Service\CoaService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class CoaController extends Controller
 {
     public function index($slug)
     {
+        $biayaUnits = RefBiayaUnit::select('nama_unit')->distinct()->get();
+        $pendapatanUnits = RefPendapatanUnit::select('nama_unit')->distinct()->get();
         $program = ProgramUnit::where('slug', $slug)->first();
-        return view('rkap.coa.index', compact('program'));
+        return view('rkap.coa.index', compact('program', 'biayaUnits', 'pendapatanUnits'));
     }
 
     public function getCoaData(Request $request, $programUnitSlug)
     {
         $coaData = CoaService::getCoaData($request, $programUnitSlug);
+        return response()->json($coaData);
+    }
+
+    public function getRefKodeTransaksiData(Request $request)
+    {
+        $coaData = CoaService::getRefKodeTransaksiData($request);
         return response()->json($coaData);
     }
 
@@ -36,13 +47,13 @@ class CoaController extends Controller
             $validated = $request->all();
             $program = ProgramUnit::where('slug', $slug)->firstOrFail();
             if ($request->kategori == 'Tindakan') {
-                $referensi = MasterTindakan::where('nama_tindakan', $request->desc_transaksi)->first();
+                $referensi = MasterTindakan::find($request->desc_transaksi);
                 $desc_transaksi =  $referensi ? $referensi->nama_tindakan : $request->desc_transaksi;
             } else if ($request->kategori == 'Farmalkes') {
-                $referensi = MasterFarmalkes::where('nama_item', $request->desc_transaksi)->first();
+                $referensi = MasterFarmalkes::find($request->desc_transaksi);
                 $desc_transaksi =  $referensi ? $referensi->nama_item : $request->desc_transaksi;
             } else {
-                $referensi = MasterUmum::where('nama_item', $request->desc_transaksi)->first();
+                $referensi = MasterUmum::find($request->desc_transaksi);
                 $desc_transaksi =  $referensi ? $referensi->nama_item : $request->desc_transaksi;
             }
 
@@ -82,13 +93,13 @@ class CoaController extends Controller
 
             $program = ProgramUnit::where('slug', $slug)->firstOrFail();
             if ($request->kategori == 'Tindakan') {
-                $referensi = MasterTindakan::where('nama_tindakan', $request->desc_transaksi)->first();
+                $referensi = MasterTindakan::find($request->desc_transaksi);
                 $desc_transaksi =  $referensi ? $referensi->nama_tindakan : $request->desc_transaksi;
             } else if ($request->kategori == 'Farmalkes') {
-                $referensi = MasterFarmalkes::where('nama_item', $request->desc_transaksi)->first();
+                $referensi = MasterFarmalkes::find($request->desc_transaksi);
                 $desc_transaksi =  $referensi ? $referensi->nama_item : $request->desc_transaksi;
             } else {
-                $referensi = MasterUmum::where('nama_item', $request->desc_transaksi)->first();
+                $referensi = MasterUmum::find($request->desc_transaksi);
                 $desc_transaksi =  $referensi ? $referensi->nama_item : $request->desc_transaksi;
             }
 
