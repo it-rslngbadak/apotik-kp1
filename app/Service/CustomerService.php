@@ -37,8 +37,19 @@ class CustomerService
                 ->orWhereRaw('UPPER(nama_customer) like ?', ['%' . $searchValue . '%']);
         };
 
+        // ✅ Fix: parse format 'd-M-Y' sesuai output datetimepicker (contoh: 29-May-2025)
+        $dari_tgl = $request->get('dari_tgl')
+            ? \Carbon\Carbon::createFromFormat('d-m-Y', $request->get('dari_tgl'))->startOfDay()
+            : \Carbon\Carbon::now()->subDays(90)->startOfDay();
+
+        $sampai_tgl = $request->get('sampai_tgl')
+            ? \Carbon\Carbon::createFromFormat('d-m-Y', $request->get('sampai_tgl'))->endOfDay()
+            : \Carbon\Carbon::now();
+
         // ✅ Base query
-        $baseQuery = Customer::with('transaksiObat');
+        $baseQuery = Customer::with('transaksiObat')
+            ->where('tanggal_registrasi', '>=', $dari_tgl)
+            ->where('tanggal_registrasi', '<=', $sampai_tgl);
 
         $totalRecords = Customer::count();
 

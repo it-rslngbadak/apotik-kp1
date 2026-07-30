@@ -106,16 +106,16 @@ class DetailInvoiceSheet implements FromArray, WithTitle, WithEvents
                 // BLOK TANDA TANGAN
                 $baseRow = $row + 2; // kasih jarak 2 baris kosong dari GRAND TOTAL
 
-                $sheet->setCellValue('F' . $baseRow, \Carbon\Carbon::now()->translatedFormat('l, d-m-Y'));
-                $sheet->setCellValue('F' . ($baseRow + 1), 'Kasir Apotek');
+                $sheet->setCellValue('G' . $baseRow, \Carbon\Carbon::now()->translatedFormat('l, d-m-Y'));
+                $sheet->setCellValue('G' . ($baseRow + 1), 'Kasir Apotek');
 
                 // jarak untuk ruang tanda tangan fisik (kosongkan beberapa baris)
                 $rowNamaUser = $baseRow + 5;
 
-                $sheet->setCellValue('F' . $rowNamaUser, auth()->user()->name ?? '-');
-                $sheet->getStyle('F' . $rowNamaUser)->getFont()->setUnderline(true);
+                $sheet->setCellValue('G' . $rowNamaUser, auth()->user()->name ?? '-');
+                $sheet->getStyle('G' . $rowNamaUser)->getFont()->setUnderline(true);
 
-                $sheet->getStyle('F' . $baseRow . ':F' . ($baseRow + 1))->getFont()->setBold(false);
+                $sheet->getStyle('G' . $baseRow . ':F' . ($baseRow + 1))->getFont()->setBold(false);
             },
         ];
     }

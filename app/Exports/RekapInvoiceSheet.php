@@ -62,7 +62,7 @@ class RekapInvoiceSheet implements FromArray, WithTitle, WithEvents
                         $sheet->setCellValue('B' . $row, $customer->no_registrasi);
 
                         // pakai accessor total_biaya yang sudah otomatis membulatkan ke ratusan untuk TUNAI
-                        $sheet->setCellValue('C' . $row, $customer->total_biaya);
+                        $sheet->setCellValue('C' . $row, $customer->total_biaya_real);
 
                         $sheet->getRowDimension($row)->setOutlineLevel(1);
                         $row++;
