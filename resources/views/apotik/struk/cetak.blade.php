@@ -237,16 +237,17 @@
             <td class="label">Jumlah Item</td>
             <td class="value">{{ $customer->transaksiObat->sum('jumlah') }}</td>
         </tr>
-        <tr class="total-row">
-            <td class="label">TOTAL (Real)</td>
-            <td class="value">Rp {{ number_format($customer->total_biaya_real, 0, ',', '.') }}</td>
-        </tr>
-        <tr class="total-row">
-            <td class="label">TOTAL (Pembulatan)</td>
-            <td class="value">Rp {{ number_format($customer->total_biaya, 0, ',', '.') }}</td>
-        </tr>
+
 
         @if ($customer->metode_bayar === 'TUNAI')
+            <tr class="total-row">
+                <td class="label">TOTAL (Real)</td>
+                <td class="value">Rp {{ number_format($customer->total_biaya_real, 0, ',', '.') }}</td>
+            </tr>
+            <tr class="total-row">
+                <td class="label">TOTAL (Pembulatan)</td>
+                <td class="value">Rp {{ number_format($customer->total_biaya, 0, ',', '.') }}</td>
+            </tr>
             <tr>
                 <td class="label">Tunai</td>
                 <td class="value">Rp {{ number_format($customer->uang_tunai, 0, ',', '.') }}</td>
@@ -254,6 +255,11 @@
             <tr>
                 <td class="label">Kembalian</td>
                 <td class="value">Rp {{ number_format($customer->kembalian, 0, ',', '.') }}</td>
+            </tr>
+        @else
+            <tr class="total-row">
+                <td class="label">TOTAL</td>
+                <td class="value">Rp {{ number_format($customer->total_biaya_real, 0, ',', '.') }}</td>
             </tr>
         @endif
     </table>

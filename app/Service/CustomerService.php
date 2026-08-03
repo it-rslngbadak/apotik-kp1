@@ -105,6 +105,11 @@ class CustomerService
                     </button>
                 ';
             }
+            $statusBadge = match (strtoupper($record->status)) {
+                'DILAYANI' => '<span class="badge badge-warning">DILAYANI</span>',
+                'SELESAI'  => '<span class="badge badge-success">SELESAI</span>',
+                default    => '<span class="badge badge-secondary">' . e($record->status) . '</span>',
+            };
 
             $data_arr[] = [
                 "no_registrasi" => $record->no_registrasi,
@@ -113,7 +118,7 @@ class CustomerService
                 "no_hp" => $record->no_hp,
                 "nama_customer" => $record->nama_customer,
                 "metode_bayar" => $record->metode_bayar,
-                "status"  => $record->status,
+                "status"  => $statusBadge,
                 // "harga_satuan"  => number_format($record->harga_satuan, 0, ',', '.'),
                 "modify"       => $modify,
             ];

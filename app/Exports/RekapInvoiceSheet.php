@@ -75,8 +75,15 @@ class RekapInvoiceSheet implements FromArray, WithTitle, WithEvents
                     $sheet->setCellValue('C' . $row, "=SUM(C{$metodeStartRow}:C{$metodeEndRow})");
                     $sheet->getStyle('B' . $row . ':C' . $row)->getFont()->setBold(true);
                     $sheet->getStyle('B' . $row . ':C' . $row)->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
-
                     $row++;
+                    if ($metode == 'TUNAI') {
+                        $sheet->setCellValue('B' . $row, $metode . ' Total Pembulatan');
+                        $sheet->setCellValue('C' . $row, $customers->sum('total_biaya'));
+                        $sheet->getStyle('B' . $row . ':C' . $row)->getFont()->setBold(true);
+                        $sheet->getStyle('B' . $row . ':C' . $row)->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
+                        $sheet->getStyle('C' . $row)->getNumberFormat()->setFormatCode('#,##0');
+                        $row++;
+                    }
                 }
 
                 $sheet->setShowSummaryBelow(true);

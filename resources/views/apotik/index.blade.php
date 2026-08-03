@@ -65,13 +65,6 @@
                                             data-bs-target="#modalExportInvoice">
                                             <i class="fa fa-file-excel-o"></i> Export Laporan Invoice
                                         </button>
-                                        <div class="btn btn-group">
-                                            <button type="button" class="btn btn-primary dropdown-toggle"
-                                                data-bs-toggle="dropdown" aria-expanded="false">
-                                                <i class="fas fa-plus"></i>
-                                            </button>
-
-                                        </div>
                                     </div>
                                 </div>
                             </div>
