@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Models\Coa;
 use App\Models\Customer;
 use App\Models\KodeTransaksi;
+use App\Models\Simrs\FarmalkesSimrs;
 use App\Models\Simrs\RegSimrs;
 use App\Models\Simrs\TransaksiResepSimrs;
 use App\Models\TransaksiObat;
@@ -171,15 +172,19 @@ class CustomerService
                         ->where('regnum', $reg->reg_no)
                         ->get();
                     foreach ($resepByReg as $resep) {
+                        $farmalkes = FarmalkesSimrs::select(['harga_netto_beli', 'farmalkes_id', 'isi'])
+                            ->where('farmalkes_id', $resep->farmalkes_id)
+                            ->firstOrFail();
+                        $hna = (int) $farmalkes->harga_netto_beli / (int) $farmalkes->isi;
                         $totalBiaya = (int) $resep->harga_jual * (int) $resep->jumlah_dijual;
                         $TransaksiObat = TransaksiObat::create([
                             'customer_id'   => $customer->id,
                             'farmalkes_id'  => $resep->farmalkes_id,
                             'nama_obat'     => $resep->farmalkes->farmalkes_desc,
                             'jumlah'        => (int) $resep->jumlah_dijual,
-                            'hna'           => (int) $resep->HNA,
-                            'harga_jual'    => $totalBiaya,
-                            'ppn'           => (int) $totalBiaya - (int) ($totalBiaya / 1.11),
+                            'hna'           => (int) $hna,
+                            'harga_jual'    => (int) $resep->harga_jual,
+                            'ppn'           => (int) $totalBiaya - (int)($totalBiaya / (111 / 100)),
                         ]);
                     }
                 }
@@ -219,6 +224,7 @@ class CustomerService
                 $customer->kembalian = null;
             }
             $customer->status = 'SELESAI';
+            $customer->updated_by = auth()->user()->id;
             $customer->save();
 
             DB::commit();

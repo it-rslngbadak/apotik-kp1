@@ -29,6 +29,13 @@
                             <li><a href="{{ route('list-customers') }}"
                                     class="{{ set_active(['kasir*']) }} {{ request()->is('kasir/*') ? 'active' : '' }}">Kasir</a>
                             </li>
+                            <li><a href="{{ route('list-harga') }}"
+                                    class="{{ set_active(['list-harga*']) }} {{ request()->is('list-harga/*') ? 'active' : '' }}">List
+                                    Harga</a>
+                            </li>
+                            {{-- <li><a href="{{ route('list-customers') }}"
+                                    class="{{ set_active(['kasir*']) }} {{ request()->is('kasir/*') ? 'active' : '' }}">Setoran</a>
+                            </li> --}}
                         </ul>
                     </li>
                 @endif
@@ -69,7 +76,7 @@
                                     Biaya</a></li>
                         </ul>
                     </li>
-                @endif
+                @endif --}}
                 @if (Session::get('role_name') === 'Admin' || Session::get('role_name') === 'Super Admin')
                     <li
                         class="submenu {{ set_active(['list/users']) }} {{ request()->is('view/user/edit/*') ? 'active' : '' }}">
@@ -84,7 +91,7 @@
                                     Users</a></li>
                         </ul>
                     </li>
-                @endif --}}
+                @endif
                 {{-- <li
                     class="submenu {{ set_active(['student/list', 'student/grid', 'student/add/page']) }} {{ request()->is('student/edit/*') ? 'active' : '' }} {{ request()->is('student/profile/*') ? 'active' : '' }}">
                     <a href="#"><i class="fas fa-graduation-cap"></i>

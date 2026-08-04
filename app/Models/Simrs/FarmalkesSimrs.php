@@ -12,4 +12,15 @@ class FarmalkesSimrs extends Model
     protected $connection = 'odbc';
 
     protected $table = 'farmalkes';
+
+    protected $appends = [
+        'harga_jual',
+    ];
+
+    public function getHargaJualAttribute()
+    {
+        $hna = $this->harga_netto_beli / $this->isi;
+        $hargaJual = $hna + ($hna * (25 / 100));
+        return $hargaJual;
+    }
 }

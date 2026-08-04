@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\CustomerControlller;
 use App\Http\Controllers\EslonController;
+use App\Http\Controllers\HargaController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LayananController;
 use App\Http\Controllers\McuController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\UserManagementController;
 use App\Models\Simrs\BillingSimrs;
+use App\Models\Simrs\FarmalkesSimrs;
 use App\Models\Simrs\RegMultiPoliSimrs;
 use App\Models\Simrs\RegSimrs;
 use Illuminate\Support\Facades\Auth;
@@ -54,7 +56,7 @@ Route::group(['middleware' => 'auth'], function () {
     });
 });
 Route::get('/test', function () {
-    return RegSimrs::select(['no_mr', 'reg_no', 'nama', 'tanggal_registrasi'])->whereRaw("DATE(tanggal_registrasi) = ?", [now()->format('Y-m-d')])->count();
+    return FarmalkesSimrs::where('guna_id', 'OB')->count();
 });
 
 Auth::routes();
@@ -100,6 +102,14 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
                 Route::get('/struk/{id}', 'cetak')->name('struk.cetak');
             });
         });
+
+        Route::controller(HargaController::class)->group(function () {
+            Route::prefix('list-harga')->group(function () {
+                Route::get('/', 'index')->name('list-harga');
+                Route::get('/get-data-harga', 'getDataHarga')->name('get-data-harga');
+            });
+        });
+
 
         Route::get('/laporan/invoice/export', [ReportController::class, 'export'])->name('laporan.invoice.export');
 

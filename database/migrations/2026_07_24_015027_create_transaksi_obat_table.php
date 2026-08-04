@@ -20,7 +20,7 @@ return new class extends Migration
             $table->integer('jumlah');
             $table->integer('hna')->nullable();
             $table->integer('harga_jual');
-            $table->integer('ppn');
+            $table->integer('ppn')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

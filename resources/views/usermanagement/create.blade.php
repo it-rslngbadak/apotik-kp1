@@ -10,7 +10,7 @@
                         <div class="page-sub-header">
                             <h3 class="page-title">Create User</h3>
                             <ul class="breadcrumb">
-                                <li class="breadcrumb-item"><a href="{{ route('sp3/add/page') }}">User</a></li>
+                                <li class="breadcrumb-item"><a href="{{ route('list/users') }}">User</a></li>
                                 <li class="breadcrumb-item active">Create User</li>
                             </ul>
                         </div>

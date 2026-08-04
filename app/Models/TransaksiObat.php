@@ -26,6 +26,7 @@ class TransaksiObat extends Model
     protected $appends = [
         'sub_total',
         'metode_bayar',
+        'ppn',
     ];
 
     protected static function booted()
@@ -70,6 +71,13 @@ class TransaksiObat extends Model
     public function getMetodeBayarAttribute()
     {
         return $this->customer->metode_bayar;
+    }
+
+    public function getPpnAttribute()
+    {
+        $total =  $this->jumlah * $this->harga_jual;
+        $ppn = $total - ($total / (111 / 100));
+        return $ppn;
     }
 
     public function customer()
