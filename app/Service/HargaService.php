@@ -28,7 +28,8 @@ class HargaService
         };
 
         // ✅ Base query
-        $baseQuery = FarmalkesSimrs::select(['farmalkes_id', 'farmalkes_desc', 'isi', 'satuan', 'harga_netto_beli']);
+        $baseQuery = FarmalkesSimrs::select(['farmalkes_id', 'farmalkes_desc', 'isi', 'satuan', 'harga_netto_beli'])
+            ->where('aktif', 'Y');
 
         $totalRecords = FarmalkesSimrs::count();
 

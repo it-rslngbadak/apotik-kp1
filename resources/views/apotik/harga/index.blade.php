@@ -22,7 +22,8 @@
                     <div class="card card-table comman-shadow">
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-stripped table table-hover table-center mb-0" id="HargaList">
+                                <table class="table table-stripped table table-hover table-center mb-0" id="HargaList"
+                                    style="width: 100%;">
                                     <thead class="student-thread">
                                         <tr>
                                             <th>Nama Item</th>
