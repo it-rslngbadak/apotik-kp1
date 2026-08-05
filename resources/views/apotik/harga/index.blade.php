@@ -28,6 +28,7 @@
                                         <tr>
                                             <th>Nama Item</th>
                                             <th>Farmalkes ID</th>
+                                            <th>Isi</th>
                                             <th>Satuan</th>
                                             <th>Harga</th>
                                         </tr>
@@ -59,6 +60,10 @@
                     {
                         data: 'farmalkes_desc',
                         name: 'farmalkes_desc'
+                    },
+                    {
+                        data: 'isi',
+                        name: 'isi',
                     },
                     {
                         data: 'satuan',
