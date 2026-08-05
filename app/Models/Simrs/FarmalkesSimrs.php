@@ -20,7 +20,9 @@ class FarmalkesSimrs extends Model
     public function getHargaJualAttribute()
     {
         $hna = $this->harga_netto_beli / $this->isi;
-        $hargaJual = $hna + ($hna * (25 / 100));
+        $harga = $hna + ($hna * (25 / 100));
+        $ppn = $harga * (11 / 100);
+        $hargaJual = $harga + $ppn;
         return $hargaJual;
     }
 }
