@@ -57,6 +57,7 @@ class HargaService
                 "farmalkes_id" => $record->farmalkes_id,
                 "farmalkes_desc" => $record->farmalkes_desc,
                 "satuan" => $record->satuan,
+                "isi" => $record->isi,
                 "harga_jual"  => number_format($record->harga_jual, 0, ',', '.'),
             ];
         }
