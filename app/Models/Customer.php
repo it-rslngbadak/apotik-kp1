@@ -10,6 +10,8 @@ class Customer extends Model
 {
     use HasFactory;
 
+    protected $connection = 'pgsql';
+
     protected $table = 'customers';
 
     protected $fillable = [

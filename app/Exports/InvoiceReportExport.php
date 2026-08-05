@@ -13,24 +13,14 @@ class InvoiceReportExport implements WithMultipleSheets
 
     public function __construct($dariTanggal, $sampaiTanggal)
     {
-        $this->dariTanggal = $dariTanggal;
-        $this->sampaiTanggal = $sampaiTanggal;
+        $this->dariTanggal = date('Y-m-d', strtotime($dariTanggal));
+        $this->sampaiTanggal =  date('Y-m-d', strtotime($sampaiTanggal));
     }
 
     public function sheets(): array
     {
-        $dataDetailInvoice = $this->ambilDataDetailInvoice();
-        $dataRekapInvoice = $this->ambilDataRekapInvoice();
 
-        return [
-            new DetailInvoiceSheet($dataDetailInvoice),
-            new RekapInvoiceSheet($dataRekapInvoice),
-        ];
-    }
-
-    protected function ambilDataDetailInvoice()
-    {
-        return TransaksiObat::with('customer')
+        $detailInvoice = TransaksiObat::with('customer')
             ->whereHas('customer', function ($query) {
                 $query->whereBetween('tanggal_registrasi', [
                     $this->dariTanggal . ' 00:00:00',
@@ -43,11 +33,7 @@ class InvoiceReportExport implements WithMultipleSheets
                 return $item->customer->metode_bayar . '_' . $item->customer->no_registrasi;
             })
             ->values();
-    }
-
-    protected function ambilDataRekapInvoice()
-    {
-        return Customer::with('transaksiObat')
+        $rekapInvoice = Customer::with('transaksiObat')
             ->where('status', 'SELESAI')
             ->whereBetween('tanggal_registrasi', [
                 $this->dariTanggal . ' 00:00:00',
@@ -58,5 +44,12 @@ class InvoiceReportExport implements WithMultipleSheets
                 return $item->metode_bayar . '_' . $item->no_registrasi;
             })
             ->values();
+
+        $dataDetailInvoice = $detailInvoice;
+        $dataRekapInvoice = $rekapInvoice;
+        return [
+            new DetailInvoiceSheet($dataDetailInvoice),
+            new RekapInvoiceSheet($dataRekapInvoice),
+        ];
     }
 }

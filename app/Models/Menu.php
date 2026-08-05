@@ -9,6 +9,10 @@ class Menu extends Model
 {
     use HasFactory;
 
+    protected $connection = 'pgsql';
+
+    protected $table = 'menus';
+
     protected $fillable = [
         'title',
         'icon',

@@ -10,6 +10,8 @@ class TransaksiObat extends Model
 {
     use HasFactory;
 
+    protected $connection = 'pgsql';
+
     protected $table = 'transaksi_obat';
 
     protected $fillable = [
