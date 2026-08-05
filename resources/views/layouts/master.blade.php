@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
     <title>Admin Dashboard</title>
-    <link rel="shortcut icon" href="{{ URL::to('assets/img/Logo RS-Transparant.png') }}">
+    <link rel="shortcut icon" href="{{ URL::to('assets/img/single_Logo_Klinik_Badak.png') }}">
     <link rel="stylesheet" href="{{ URL::to('assets/plugins/bootstrap/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ URL::to('assets/plugins/feather/feather.css') }}">
     <link rel="stylesheet" href="{{ URL::to('assets/plugins/icons/flags/flags.css') }}">
@@ -28,10 +28,10 @@
         <div class="header">
             <div class="header-left">
                 <a href="{{ route('home') }}" class="logo">
-                    <img src="{{ URL::to('assets/img/Logo RSLNG.png') }}" alt="Logo">
+                    <img src="{{ URL::to('assets/img/Logo_Klinik_Badak.png') }}" alt="Logo">
                 </a>
                 <a href="{{ route('home') }}" class="logo logo-small">
-                    <img src="{{ URL::to('assets/img/Logo RS-Transparant.png') }}" alt="Logo" width="30"
+                    <img src="{{ URL::to('assets/img/single_Logo_Klinik_Badak.png') }}" alt="Logo" width="30"
                         height="30">
                 </a>
             </div>

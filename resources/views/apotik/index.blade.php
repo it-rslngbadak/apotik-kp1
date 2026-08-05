@@ -61,10 +61,14 @@
                                         <a href="{{ route('list-customers') }}" class="btn btn-outline-gray me-2 active">
                                             <i class="fa fa-list" aria-hidden="true"></i>
                                         </a>
-                                        <button type="button" class="btn btn-success" data-bs-toggle="modal"
-                                            data-bs-target="#modalExportInvoice">
-                                            <i class="fa fa-file-excel-o"></i> Export Laporan Invoice
-                                        </button>
+                                        @if (Session::get('role_name') === 'Admin Apotik' ||
+                                                Session::get('role_name') === 'Admin' ||
+                                                Session::get('role_name') === 'Super Admin')
+                                            <button type="button" class="btn btn-success" data-bs-toggle="modal"
+                                                data-bs-target="#modalExportInvoice">
+                                                <i class="fa fa-file-excel-o"></i> Export Laporan Invoice
+                                            </button>
+                                        @endif
                                     </div>
                                 </div>
                             </div>

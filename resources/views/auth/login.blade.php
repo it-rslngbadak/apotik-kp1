@@ -5,7 +5,7 @@
     {{-- KANAN --}}
     <div class="login-page-right col-md-7 d-flex align-items-center justify-content-center p-4 p-md-5">
         <div class="w-100">
-            <h2>Welcome To RS LNG Badak</h2>
+            <h2>Welcome To Klinik Pratama LNG Badak</h2>
             <h2>Sign in</h2>
             <form action="{{ route('login') }}" method="POST">
                 @csrf

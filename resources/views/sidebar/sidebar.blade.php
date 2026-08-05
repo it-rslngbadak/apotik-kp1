@@ -15,8 +15,8 @@
                         <li><a href="{{ route('home') }}" class="{{ set_active(['home']) }}">Admin Dashboard</a></li>
                     </ul>
                 </li>
-                @if (Session::get('role_name') === 'PIC Verifikator' ||
-                        Session::get('role_name') === 'Pengawas Verifikator' ||
+                @if (Session::get('role_name') === 'Kasir Apotik' ||
+                        Session::get('role_name') === 'Admin Apotik' ||
                         Session::get('role_name') === 'Super Admin' ||
                         Session::get('role_name') === 'Admin')
                     <li class="submenu {{ set_active(['kasir*']) }} {{ request()->is('kasir/*') ? 'active' : '' }}">
@@ -77,7 +77,7 @@
                         </ul>
                     </li>
                 @endif --}}
-                @if (Session::get('role_name') === 'Admin' || Session::get('role_name') === 'Super Admin')
+                @if (Session::get('role_name') === 'Super Admin')
                     <li
                         class="submenu {{ set_active(['list/users']) }} {{ request()->is('view/user/edit/*') ? 'active' : '' }}">
                         <a href="#">

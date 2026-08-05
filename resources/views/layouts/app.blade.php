@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
     <title>Login</title>
-    <link rel="shortcut icon" href="{{ URL::to('assets/img/Logo RS-Transparant.png') }}">
+    <link rel="shortcut icon" href="{{ URL::to('assets/img/single_Logo_Klinik_Badak.png') }}">
     <link rel="stylesheet" href="{{ URL::to('assets/plugins/bootstrap/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ URL::to('assets/plugins/feather/feather.css') }}">
     <link rel="stylesheet" href="{{ URL::to('assets/plugins/icons/flags/flags.css') }}">
@@ -44,7 +44,7 @@
                             <div class="position-absolute bottom-0 end-0 translate-middle bg-light rounded-circle opacity-25"
                                 style="width:120px; height:120px;"></div>
                             <div class="text-center">
-                                <img src="{{ URL::to('assets/img/Logo RSLNG.png') }}" class="img-fluid"
+                                <img src="{{ URL::to('assets/img/Logo_Klinik_Badak.png') }}" class="img-fluid"
                                     style="max-width: 280px;">
                             </div>
                         </div>
