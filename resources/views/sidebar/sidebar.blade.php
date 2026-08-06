@@ -19,7 +19,8 @@
                         Session::get('role_name') === 'Admin Apotik' ||
                         Session::get('role_name') === 'Super Admin' ||
                         Session::get('role_name') === 'Admin')
-                    <li class="submenu {{ set_active(['kasir*']) }} {{ request()->is('kasir/*') ? 'active' : '' }}">
+                    <li
+                        class="submenu {{ set_active(['kasir*', 'list-harga*', 'setoran*']) }} {{ request()->is('kasir/*') || request()->is('list-harga/*') || request()->is('setoran/*') ? 'active' : '' }}">
                         <a href="#">
                             <i class="fas fa-shield-alt"></i>
                             <span>Apotik</span>
@@ -32,6 +33,9 @@
                             <li><a href="{{ route('list-harga') }}"
                                     class="{{ set_active(['list-harga*']) }} {{ request()->is('list-harga/*') ? 'active' : '' }}">List
                                     Harga</a>
+                            </li>
+                            <li><a href="{{ route('list-setoran') }}"
+                                    class="{{ set_active(['setoran*']) }} {{ request()->is('setoran/*') ? 'active' : '' }}">Setoran</a>
                             </li>
                             {{-- <li><a href="{{ route('list-customers') }}"
                                     class="{{ set_active(['kasir*']) }} {{ request()->is('kasir/*') ? 'active' : '' }}">Setoran</a>

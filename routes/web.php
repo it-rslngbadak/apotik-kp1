@@ -10,13 +10,8 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LayananController;
 use App\Http\Controllers\McuController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SetoranController;
 use App\Http\Controllers\Setting;
-use App\Http\Controllers\Sp3Controller;
-use App\Http\Controllers\StudentController;
-use App\Http\Controllers\SubjectController;
-use App\Http\Controllers\SubLayananController;
-use App\Http\Controllers\TeacherController;
-use App\Http\Controllers\UnitController;
 use App\Http\Controllers\UserManagementController;
 use App\Models\Simrs\BillingSimrs;
 use App\Models\Simrs\FarmalkesSimrs;
@@ -107,6 +102,18 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::prefix('list-harga')->group(function () {
                 Route::get('/', 'index')->name('list-harga');
                 Route::get('/get-data-harga', 'getDataHarga')->name('get-data-harga');
+            });
+        });
+
+        Route::controller(SetoranController::class)->group(function () {
+            Route::prefix('setoran')->group(function () {
+                Route::get('/', [SetoranController::class, 'index'])->name('list-setoran');
+                Route::get('/data', [SetoranController::class, 'getDataSetoran'])->name('get-data-setoran');
+                Route::get('/shift-status', [SetoranController::class, 'shiftStatus'])->name('setoran.shift-status');
+                Route::post('/store', [SetoranController::class, 'store'])->name('store-setoran');
+                Route::post('/update/{id}', [SetoranController::class, 'update'])->name('update-setoran');
+                // Route::delete('/delete/{id}', [SetoranController::class, 'destroy'])->name('delete-setoran');
+                Route::get('/cetak/{id}', [SetoranController::class, 'cetakStruk'])->name('cetak-setoran');
             });
         });
 
