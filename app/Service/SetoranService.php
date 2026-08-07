@@ -11,7 +11,7 @@ class SetoranService
     // === Jam buka input per shift (silakan sesuaikan) ===
     private const SHIFT_OPEN_TIME = [
         'PAGI' => '14:30',
-        'SORE' => '17:00',
+        'SORE' => '22:00',
     ];
 
     private const PRINT_ALLOWED_ROLES = ['Admin', 'Super Admin'];
@@ -69,16 +69,16 @@ class SetoranService
 
             $modify = '';
 
-            if ($isToday) {
-                $modify .= '
-                    <button type="button" class="btn btn-sm bg-warning-light btn-edit-setoran"
-                        data-id="' . $record->id . '"
-                        data-setoran="' . e($record->setoran) . '"
-                        data-shift="' . e($record->shift) . '">
-                        <i class="fa fa-edit"></i>
-                    </button>
-                ';
-            }
+            // if ($isToday) {
+            //     $modify .= '
+            //         <button type="button" class="btn btn-sm bg-warning-light btn-edit-setoran"
+            //             data-id="' . $record->id . '"
+            //             data-setoran="' . e($record->setoran) . '"
+            //             data-shift="' . e($record->shift) . '">
+            //             <i class="fa fa-edit"></i>
+            //         </button>
+            //     ';
+            // }
 
             if ($record->status === 'SELESAI' && self::canPrint($record, $currentUser)) {
                 $modify .= '
