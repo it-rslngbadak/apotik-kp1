@@ -11,7 +11,7 @@ class SetoranService
     // === Jam buka input per shift (silakan sesuaikan) ===
     private const SHIFT_OPEN_TIME = [
         'PAGI' => '14:30',
-        'SORE' => '22:00',
+        'SORE' => '21:30',
     ];
 
     private const PRINT_ALLOWED_ROLES = ['Admin', 'Super Admin'];
