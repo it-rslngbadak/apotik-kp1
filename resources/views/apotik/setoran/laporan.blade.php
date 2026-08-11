@@ -161,6 +161,12 @@
             text-align: center;
         }
 
+        .ttd-box-left {
+            float: left;
+            width: 220px;
+            text-align: center;
+        }
+
         .ttd-space {
             height: 60px;
         }
@@ -171,6 +177,13 @@
             padding-top: 4px;
             font-weight: bold;
             text-decoration: underline;
+        }
+
+        .ttd-name-blank {
+            border-top: 1px solid #000;
+            display: block;
+            width: 70%;
+            margin: 10 auto;
         }
 
         .clearfix::after {
@@ -278,6 +291,12 @@
 
     {{-- ===== TTD ===== --}}
     <div class="ttd-wrap clearfix">
+        <div class="ttd-box-left">
+            <p>{{ $setoran->tanggal->translatedFormat('l, d-m-Y') }}</p>
+            <p>Kasir Klinik</p>
+            <div class="ttd-space"></div>
+            <div class="ttd-name-blank"></div>
+        </div>
         <div class="ttd-box">
             <p>{{ $setoran->tanggal->translatedFormat('l, d-m-Y') }}</p>
             <p>Kasir Apotek</p>

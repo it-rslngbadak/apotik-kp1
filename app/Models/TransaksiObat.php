@@ -29,6 +29,7 @@ class TransaksiObat extends Model
         'sub_total',
         'metode_bayar',
         'ppn',
+        'ppn_11',
     ];
 
     protected static function booted()
@@ -79,6 +80,13 @@ class TransaksiObat extends Model
     {
         $total =  $this->jumlah * $this->harga_jual;
         $ppn = $total - ($total / (111 / 100));
+        return $ppn;
+    }
+
+    public function getPpn11Attribute()
+    {
+        $total =  $this->jumlah * $this->harga_jual;
+        $ppn = (int)$total * (11 / 100);
         return $ppn;
     }
 

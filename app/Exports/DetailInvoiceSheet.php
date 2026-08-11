@@ -35,7 +35,7 @@ class DetailInvoiceSheet implements FromArray, WithTitle, WithEvents
                 $sheet = $event->sheet->getDelegate();
 
                 // ==== JUDUL ====
-                $sheet->mergeCells('A1:I1');
+                $sheet->mergeCells('A1:J1');
                 $sheet->setCellValue('A1', 'LAPORAN DETAIL INVOICE');
                 $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
                 $sheet->getStyle('A1')->getAlignment()->setHorizontal('center')->setVertical('center');
@@ -52,15 +52,16 @@ class DetailInvoiceSheet implements FromArray, WithTitle, WithEvents
                     'HNA',
                     'HARGA JUAL (HARGA DIBAYAR PASIEN)',
                     'PPN',
+                    'PPN (11%)',
                     'METODE BAYAR'
                 ];
                 foreach ($headers as $i => $header) {
                     $col = chr(65 + $i);
                     $sheet->setCellValue($col . '2', $header);
                 }
-                $sheet->getStyle('A2:I2')->getFont()->setBold(true);
-                $sheet->getStyle('A2:I2')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('FFE699');
-                $sheet->getStyle('A2:I2')->getAlignment()->setHorizontal('center')->setWrapText(true);
+                $sheet->getStyle('A2:J2')->getFont()->setBold(true);
+                $sheet->getStyle('A2:J2')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('FFE699');
+                $sheet->getStyle('A2:J2')->getAlignment()->setHorizontal('center')->setWrapText(true);
 
                 // ==== ISI DATA ====
                 $row = 3;
@@ -74,7 +75,10 @@ class DetailInvoiceSheet implements FromArray, WithTitle, WithEvents
                     $sheet->setCellValue('F' . $row, $item->hna);
                     $sheet->setCellValue('G' . $row, $item->sub_total);
                     $sheet->setCellValue('H' . $row, $item->ppn);
-                    $sheet->setCellValue('I' . $row, $item->customer->metode_bayar);
+                    $sheet->setCellValue('I' . $row, ceil($item->ppn_11));
+                    $sheet->setCellValue('J' . $row, $item->customer->metode_bayar);
+                    $sheet->setCellValue('K' . $row, '');
+                    $sheet->setCellValue('L' . $row, '=A' . $row . '&" "&K' . $row . '&" "&D' . $row);
 
                     $row++;
                 }
@@ -94,12 +98,12 @@ class DetailInvoiceSheet implements FromArray, WithTitle, WithEvents
                     $sheet->mergeCells('A' . $row . ':I' . $row);
                 }
 
-                $sheet->getStyle('A' . $row . ':I' . $row)->getFont()->setBold(true);
-                $sheet->getStyle('A' . $row . ':I' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('D9E1F2');
+                $sheet->getStyle('A' . $row . ':J' . $row)->getFont()->setBold(true);
+                $sheet->getStyle('A' . $row . ':J' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('D9E1F2');
 
                 $sheet->getStyle('G3:H' . $row)->getNumberFormat()->setFormatCode('#,##0');
 
-                foreach (range('A', 'I') as $col) {
+                foreach (range('A', 'J') as $col) {
                     $sheet->getColumnDimension($col)->setAutoSize(true);
                 }
 
