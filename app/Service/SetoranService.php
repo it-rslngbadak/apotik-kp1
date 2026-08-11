@@ -231,7 +231,7 @@ class SetoranService
             return false;
         }
 
-        if ($setoran->user_id === $user->id) {
+        if ($setoran->user_id === $user->id || $user->role_name === 'Super Admin') {
             return true;
         }
 
