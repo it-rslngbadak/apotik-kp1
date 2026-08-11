@@ -53,7 +53,9 @@ class DetailInvoiceSheet implements FromArray, WithTitle, WithEvents
                     'HARGA JUAL (HARGA DIBAYAR PASIEN)',
                     'PPN',
                     'PPN (11%)',
-                    'METODE BAYAR'
+                    'METODE BAYAR',
+                    'NO INVOICE',
+                    'DESKRIPSI',
                 ];
                 foreach ($headers as $i => $header) {
                     $col = chr(65 + $i);
