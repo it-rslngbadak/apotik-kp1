@@ -292,7 +292,6 @@
     {{-- ===== TTD ===== --}}
     <div class="ttd-wrap clearfix">
         <div class="ttd-box-left">
-            <p>{{ $setoran->tanggal->translatedFormat('l, d-m-Y') }}</p>
             <p>Kasir Klinik</p>
             <div class="ttd-space"></div>
             <div class="ttd-name-blank"></div>
