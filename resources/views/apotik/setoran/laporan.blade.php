@@ -162,6 +162,7 @@
         }
 
         .ttd-box-left {
+            margin-top: 2px;
             float: left;
             width: 220px;
             text-align: center;
@@ -182,7 +183,7 @@
         .ttd-name-blank {
             border-top: 1px solid #000;
             display: block;
-            width: 70%;
+            width: 50%;
             margin: 10 auto;
         }
 
@@ -292,7 +293,7 @@
     {{-- ===== TTD ===== --}}
     <div class="ttd-wrap clearfix">
         <div class="ttd-box-left">
-            <p>Kasir Klinik</p>
+            <p style="margin-top: 42px;">Kasir Klinik</p>
             <div class="ttd-space"></div>
             <div class="ttd-name-blank"></div>
         </div>
