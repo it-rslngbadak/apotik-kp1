@@ -83,7 +83,7 @@
                                             <th>Nama Pengunjung</th>
                                             <th>Metode Bayar</th>
                                             <th>Status</th>
-                                            <th class="text-end">Action</th>
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
                                 </table>
@@ -251,6 +251,7 @@
         {{-- get user all js --}}
         <script type="text/javascript">
             $(document).ready(function() {
+                var currentUserId = "{{ Session::get('id') }}";
                 $('.select2').select2();
                 $('#CustomerList').DataTable({
                     processing: true,
@@ -349,7 +350,6 @@
                     hitungKembalian();
                 });
 
-                // saat modal edit dibuka, isi semua field termasuk total & tunai
                 $(document).on('click', '.btn-edit-customer', function() {
                     var $btn = $(this);
                     $('#edit_customer_id').val($btn.data('id'));
@@ -361,9 +361,16 @@
                     $('#edit_kembalian').val($btn.data('kembalian'));
 
                     renderRincianObat($btn.data('items'));
+                    toggleFieldTunai();
 
-                    toggleFieldTunai
-                        (); // pastikan field muncul/sembunyi sesuai metode bayar yang sudah tersimpan
+                    // ✅ tombol Simpan hanya tampil kalau data ini di-update_by user yang sedang login
+                    var updatedBy = $btn.data('updated_by');
+                    if (String(updatedBy) === String(currentUserId)) {
+                        $('#btnSimpanEditCustomer').show();
+                    } else {
+                        $('#btnSimpanEditCustomer').hide();
+                    }
+
                     $('#modalEditCustomer').modal('show');
                 });
 

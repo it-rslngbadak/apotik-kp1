@@ -13,6 +13,7 @@ use Brian2694\Toastr\Facades\Toastr;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
 
 class CustomerService
 {
@@ -93,6 +94,7 @@ class CustomerService
                     data-total="' . e($record->total_biaya) . '"
                     data-uang_tunai="' . e($record->uang_tunai) . '"
                     data-kembalian="' . e($record->kembalian) . '"
+                    data-updated_by="' . e($record->updated_by) . '"
                     data-items="' . e($itemsJson->toJson()) . '">
                     <i class="fa fa-edit"></i>
                 </button>
@@ -210,6 +212,12 @@ class CustomerService
         DB::beginTransaction();
         try {
             $customer = Customer::findOrFail($request->id);
+            if ($customer->updated_by != Session::get('id')) {
+                return [
+                    'status'  => 'failed',
+                    'message' => 'Anda tidak memiliki akses untuk mengubah data ini.',
+                ];
+            }
             $customer->metode_bayar = $request->metode_bayar;
             $customer->nama_customer = $request->nama_customer;
             $customer->no_hp = $request->no_hp;
@@ -224,7 +232,9 @@ class CustomerService
                 $customer->kembalian = null;
             }
             $customer->status = 'SELESAI';
-            $customer->updated_by = auth()->user()->id;
+            if ($customer->updated_by === null) {
+                $customer->updated_by = auth()->user()->id;
+            }
             $customer->save();
 
             DB::commit();
