@@ -171,6 +171,7 @@
                                     <option value="QRIS">QRIS</option>
                                     <option value="TUNAI">TUNAI</option>
                                     <option value="TRANSFER">TRANSFER</option>
+                                    <option value="DEBIT/KREDIT">DEBIT/KREDIT</option>
                                 </select>
                             </div>
                             {{-- muncul hanya kalau metode bayar = TUNAI --}}

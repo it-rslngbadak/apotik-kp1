@@ -33,7 +33,7 @@ class CustomerControlller extends Controller
     {
         $request->validate([
             'id' => 'required|exists:customers,id',
-            'metode_bayar' => 'required|in:QRIS,TUNAI,TRANSFER',
+            'metode_bayar' => 'required|in:QRIS,TUNAI,TRANSFER,DEBIT/KREDIT',
             'uang_tunai' => 'required_if:metode_bayar,TUNAI|nullable|numeric|min:0',
             'nama_customer' => 'nullable|string|max:255',
             'no_hp' => 'nullable|string|max:20',
