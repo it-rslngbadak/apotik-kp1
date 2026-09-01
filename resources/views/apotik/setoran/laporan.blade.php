@@ -104,6 +104,14 @@
             margin-top: 8px;
         }
 
+        table.data thead {
+            display: table-header-group;
+        }
+
+        table.data tbody tr {
+            page-break-inside: avoid;
+        }
+
         table.data th,
         table.data td {
             border: 1px solid #333;
@@ -123,6 +131,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 16px;
+            page-break-inside: avoid;
         }
 
         table.summary td {
@@ -140,6 +149,10 @@
             text-align: right;
         }
 
+        .pendapatan-wrap {
+            page-break-inside: avoid;
+        }
+
         h3.subtitle {
             text-align: center;
             margin: 20px 0 8px 0;
@@ -149,6 +162,14 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 4px;
+        }
+
+        table.pendapatan thead {
+            display: table-header-group;
+        }
+
+        table.pendapatan tbody tr {
+            page-break-inside: avoid;
         }
 
         table.pendapatan th,
@@ -184,19 +205,16 @@
         .ttd-wrap {
             margin-top: 50px;
             width: 100%;
+            border-collapse: collapse;
+            page-break-inside: avoid;
         }
 
-        .ttd-box {
-            float: right;
-            width: 220px;
+        .ttd-wrap td {
+            border: none;
+            width: 50%;
             text-align: center;
-        }
-
-        .ttd-box-left {
-            margin-top: 2px;
-            float: left;
-            width: 220px;
-            text-align: center;
+            vertical-align: top;
+            padding: 0;
         }
 
         .ttd-space {
@@ -213,15 +231,9 @@
 
         .ttd-name-blank {
             border-top: 1px solid #000;
-            display: block;
-            width: 50%;
-            margin: 10 auto;
-        }
-
-        .clearfix::after {
-            content: "";
-            display: table;
-            clear: both;
+            display: inline-block;
+            width: 40%;
+            margin: 11 auto;
         }
     </style>
 </head>
@@ -322,49 +334,53 @@
     </table>
 
     {{-- ===== LAPORAN PENDAPATAN SHIFT (per jenis pembayaran) ===== --}}
-    <h3 class="subtitle">Laporan Pendapatan Shift</h3>
-    <table class="pendapatan">
-        <thead>
-            <tr>
-                <th>Jenis Pembayaran</th>
-                <th class="num">Jumlah Transaksi</th>
-                <th class="num">Nilai Transaksi</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($pendapatan as $item)
+    <div class="pendapatan-wrap">
+        <h3 class="subtitle">Laporan Pendapatan Shift</h3>
+        <table class="pendapatan">
+            <thead>
                 <tr>
-                    <td>{{ $item->jenis_pembayaran }}</td>
-                    <td class="num">{{ number_format($item->jumlah_transaksi, 0, ',', '.') }}</td>
-                    <td class="num">Rp {{ number_format($item->nilai_transaksi, 0, ',', '.') }}</td>
+                    <th>Jenis Pembayaran</th>
+                    <th class="num">Jumlah Transaksi</th>
+                    <th class="num">Nilai Transaksi</th>
                 </tr>
-            @empty
-                <tr>
-                    <td colspan="3" style="text-align:center;">Tidak ada data pendapatan pada shift ini</td>
+            </thead>
+            <tbody>
+                @forelse($pendapatan as $item)
+                    <tr>
+                        <td>{{ $item->jenis_pembayaran }}</td>
+                        <td class="num">{{ number_format($item->jumlah_transaksi, 0, ',', '.') }}</td>
+                        <td class="num">Rp {{ number_format($item->nilai_transaksi, 0, ',', '.') }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="3" style="text-align:center;">Tidak ada data pendapatan pada shift ini</td>
+                    </tr>
+                @endforelse
+                <tr class="total-row">
+                    <td>Total</td>
+                    <td class="num">{{ number_format($pendapatan->sum('jumlah_transaksi'), 0, ',', '.') }}</td>
+                    <td class="num">Rp {{ number_format($pendapatan->sum('nilai_transaksi'), 0, ',', '.') }}</td>
                 </tr>
-            @endforelse
-            <tr class="total-row">
-                <td>Total</td>
-                <td class="num">{{ number_format($pendapatan->sum('jumlah_transaksi'), 0, ',', '.') }}</td>
-                <td class="num">Rp {{ number_format($pendapatan->sum('nilai_transaksi'), 0, ',', '.') }}</td>
-            </tr>
-        </tbody>
-    </table>
+            </tbody>
+        </table>
+    </div>
 
     {{-- ===== TTD ===== --}}
-    <div class="ttd-wrap clearfix">
-        <div class="ttd-box-left">
-            <p style="margin-top: 42px;">Kasir Klinik</p>
-            <div class="ttd-space"></div>
-            <div class="ttd-name-blank"></div>
-        </div>
-        <div class="ttd-box">
-            <p>{{ $setoran->tanggal->translatedFormat('l, d-m-Y') }}</p>
-            <p>Kasir Apotek</p>
-            <div class="ttd-space"></div>
-            <p class="ttd-name">{{ $setoran->user->name ?? '-' }}</p>
-        </div>
-    </div>
+    <table class="ttd-wrap">
+        <tr>
+            <td style="padding-top: 31px">
+                <p style="padding: 5px">Kasir Klinik</p>
+                <div class="ttd-space"></div>
+                <div class="ttd-name-blank">&nbsp;</div>
+            </td>
+            <td>
+                <p>{{ $setoran->tanggal->translatedFormat('l, d-m-Y') }}</p>
+                <p>Kasir Apotek</p>
+                <div class="ttd-space"></div>
+                <p class="ttd-name">{{ $setoran->user->name ?? '-' }}</p>
+            </td>
+        </tr>
+    </table>
 
 </body>
 
