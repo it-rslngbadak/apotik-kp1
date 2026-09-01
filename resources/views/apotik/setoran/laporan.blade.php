@@ -140,6 +140,37 @@
             text-align: right;
         }
 
+        h3.subtitle {
+            text-align: center;
+            margin: 20px 0 8px 0;
+        }
+
+        table.pendapatan {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 4px;
+        }
+
+        table.pendapatan th,
+        table.pendapatan td {
+            border: 1px solid #333;
+            padding: 6px 8px;
+        }
+
+        table.pendapatan th {
+            background: #dbe4f7;
+            text-align: left;
+        }
+
+        table.pendapatan td.num {
+            text-align: right;
+        }
+
+        table.pendapatan tr.total-row td {
+            font-weight: bold;
+            background: #f2f2f2;
+        }
+
         .selisih-positif {
             color: #1a7f37;
             font-weight: bold;
@@ -288,6 +319,36 @@
                 {{ $setoran->selisih >= 0 ? '+' : '-' }}Rp {{ number_format(abs($setoran->selisih), 0, ',', '.') }}
             </td>
         </tr>
+    </table>
+
+    {{-- ===== LAPORAN PENDAPATAN SHIFT (per jenis pembayaran) ===== --}}
+    <h3 class="subtitle">Laporan Pendapatan Shift</h3>
+    <table class="pendapatan">
+        <thead>
+            <tr>
+                <th>Jenis Pembayaran</th>
+                <th class="num">Jumlah Transaksi</th>
+                <th class="num">Nilai Transaksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($pendapatan as $item)
+                <tr>
+                    <td>{{ $item->jenis_pembayaran }}</td>
+                    <td class="num">{{ number_format($item->jumlah_transaksi, 0, ',', '.') }}</td>
+                    <td class="num">Rp {{ number_format($item->nilai_transaksi, 0, ',', '.') }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="3" style="text-align:center;">Tidak ada data pendapatan pada shift ini</td>
+                </tr>
+            @endforelse
+            <tr class="total-row">
+                <td>Total</td>
+                <td class="num">{{ number_format($pendapatan->sum('jumlah_transaksi'), 0, ',', '.') }}</td>
+                <td class="num">Rp {{ number_format($pendapatan->sum('nilai_transaksi'), 0, ',', '.') }}</td>
+            </tr>
+        </tbody>
     </table>
 
     {{-- ===== TTD ===== --}}

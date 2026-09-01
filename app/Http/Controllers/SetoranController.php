@@ -102,12 +102,25 @@ class SetoranController extends Controller
             ->orderBy('no_registrasi')
             ->get();
 
+        $pendapatan = \App\Models\Customer::with('transaksiObat')
+            ->where('updated_by', $setoran->user_id)
+            ->whereDate('updated_at', $setoran->tanggal->toDateString())
+            ->get()
+            ->groupBy('metode_bayar')
+            ->map(function ($group, $metode) {
+                return (object) [
+                    'jenis_pembayaran' => $metode ?? '-',
+                    'jumlah_transaksi' => $group->count(),
+                    'nilai_transaksi'  => $group->sum('total_biaya'),
+                ];
+            })
+            ->values();
         $logoPath = public_path('assets/img/single_Logo_Klinik_Badak.png');
         $logoBase64 = file_exists($logoPath)
             ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath))
             : null;
 
-        $pdf = Pdf::loadView('apotik.setoran.laporan', compact('setoran', 'customers', 'logoBase64'))
+        $pdf = Pdf::loadView('apotik.setoran.laporan', compact('setoran', 'customers', 'pendapatan', 'logoBase64'))
             ->setPaper('a4', 'portrait');
 
         return $pdf->stream('laporan-setoran-' . $setoran->id . '.pdf');
