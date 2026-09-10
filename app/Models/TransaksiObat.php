@@ -78,16 +78,22 @@ class TransaksiObat extends Model
 
     public function getPpnAttribute()
     {
-        $total =  $this->jumlah * $this->harga_jual;
-        $ppn = $total - ($total / (111 / 100));
-        return $ppn;
+        if (!str_starts_with($this->farmalkes_id, 'AK')) {
+            $total = $this->jumlah * $this->harga_jual;
+            $ppn = $total - ($total / (111 / 100));
+            return $ppn;
+        }
+        return 0;
     }
 
     public function getPpn11Attribute()
     {
-        $total =  $this->jumlah * $this->harga_jual;
-        $ppn = (int)$total * (11 / 100);
-        return $ppn;
+        if (!str_starts_with($this->farmalkes_id, 'AK')) {
+            $total =  $this->jumlah * $this->harga_jual;
+            $ppn = (int)$total * (11 / 100);
+            return $ppn;
+        }
+        return 0;
     }
 
     public function customer()
