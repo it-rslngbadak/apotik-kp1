@@ -112,7 +112,8 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
                 Route::get('/shift-status', [SetoranController::class, 'shiftStatus'])->name('setoran.shift-status');
                 Route::post('/store', [SetoranController::class, 'store'])->name('store-setoran');
                 Route::post('/update/{id}', [SetoranController::class, 'update'])->name('update-setoran');
-                // Route::delete('/delete/{id}', [SetoranController::class, 'destroy'])->name('delete-setoran');
+                Route::post('/store-custom', [SetoranController::class, 'storeCustom'])->name('store-custom-setoran');
+                Route::delete('/delete/{id}', [SetoranController::class, 'destroy'])->name('delete-setoran');
                 Route::get('/cetak/{id}', [SetoranController::class, 'cetakStruk'])->name('cetak-setoran');
             });
         });

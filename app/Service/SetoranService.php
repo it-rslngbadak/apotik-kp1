@@ -88,8 +88,14 @@ class SetoranService
                 ';
             }
 
-            // tombol delete - disiapkan tapi disembunyikan dulu
-            // $modify .= '<button type="button" class="btn btn-sm btn-danger btn-delete-setoran" data-id="' . $record->id . '"><i class="fa fa-trash"></i></button>';
+            // tombol delete - hanya untuk admin
+            if (self::isAdmin($currentUser)) {
+                $modify .= '
+                    <button type="button" class="btn btn-sm btn-danger btn-delete-setoran" data-id="' . $record->id . '">
+                        <i class="fa fa-trash"></i>
+                    </button>
+                ';
+            }
 
             $selisihValue = (int) ($record->selisih ?? 0);
 
@@ -212,6 +218,45 @@ class SetoranService
         ]);
 
         return $setoran;
+    }
+
+    /**
+     * Input setoran custom (khusus admin): tanggal & shift bebas dipilih,
+     * tanpa batasan jam buka shift maupun duplikasi shift.
+     */
+    public static function storeCustom(array $data, int $userId): Setoran
+    {
+        $shift = strtoupper($data['shift'] ?? '');
+
+        if (! array_key_exists($shift, self::SHIFT_OPEN_TIME)) {
+            throw new \InvalidArgumentException('Shift tidak valid.');
+        }
+
+        $tanggal = Carbon::createFromFormat('d-m-Y', $data['tanggal'])
+            ->setTimeFromTimeString(self::SHIFT_OPEN_TIME[$shift]);
+
+        $totalTunai = self::getTotalTunaiCustomer($userId, $tanggal);
+        $selisih    = (int) $data['setoran'] - $totalTunai;
+
+        return Setoran::create([
+            'user_id'               => $userId,
+            'setoran'                => $data['setoran'],
+            'shift'                  => $shift,
+            'tanggal'                => $tanggal,
+            'status'                 => 'SELESAI',
+            'total_tunai_customer'   => $totalTunai,
+            'selisih'                => $selisih,
+        ]);
+    }
+
+    public static function delete(Setoran $setoran): void
+    {
+        $setoran->delete();
+    }
+
+    public static function isAdmin($user): bool
+    {
+        return $user && in_array($user->role_name, self::PRINT_ALLOWED_ROLES);
     }
 
     private static function getTotalTunaiCustomer(int $userId, Carbon $date): int
