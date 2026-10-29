@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Setoran;
+use App\Models\User;
 use App\Service\SetoranService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -13,7 +14,10 @@ class SetoranController extends Controller
 {
     public function index()
     {
-        return view('apotik.setoran.index');
+        $isAdmin = SetoranService::isAdmin(Auth::user());
+        $users   = $isAdmin ? User::orderBy('name')->get(['id', 'name']) : collect();
+
+        return view('apotik.setoran.index', compact('isAdmin', 'users'));
     }
 
     public function getDataSetoran(Request $request)
@@ -80,12 +84,48 @@ class SetoranController extends Controller
     }
 
 
-    // Disiapkan dulu, belum diaktifkan sesuai permintaan
-    // public function destroy($id)
-    // {
-    //     Setoran::findOrFail($id)->delete();
-    //     return response()->json(['status' => 'success', 'message' => 'Setoran berhasil dihapus.']);
-    // }
+    public function storeCustom(Request $request)
+    {
+        if (! SetoranService::isAdmin(Auth::user())) {
+            return response()->json(['status' => 'error', 'message' => 'Hanya admin yang dapat membuat setoran custom.'], 403);
+        }
+
+        $request->validate([
+            'tanggal' => 'required|date_format:d-m-Y',
+            'setoran' => 'required|numeric|min:0',
+            'shift'   => 'required|in:PAGI,SORE',
+            'user_id' => 'required|exists:pgsql.users,id',
+        ]);
+
+        try {
+            $setoran = SetoranService::storeCustom(
+                $request->only('tanggal', 'setoran', 'shift'),
+                (int) $request->user_id
+            );
+
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Setoran custom berhasil disimpan.',
+                'data'    => [
+                    'total_tunai_customer' => (int) $setoran->total_tunai_customer,
+                    'selisih'              => (int) $setoran->selisih,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
+        }
+    }
+
+    public function destroy($id)
+    {
+        if (! SetoranService::isAdmin(Auth::user())) {
+            return response()->json(['status' => 'error', 'message' => 'Hanya admin yang dapat menghapus setoran.'], 403);
+        }
+
+        SetoranService::delete(Setoran::findOrFail($id));
+
+        return response()->json(['status' => 'success', 'message' => 'Setoran berhasil dihapus.']);
+    }
 
     public function cetakStruk($id)
     {

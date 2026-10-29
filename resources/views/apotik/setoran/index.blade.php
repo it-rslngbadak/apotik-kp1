@@ -63,6 +63,12 @@
                                             data-bs-toggle="modal" data-bs-target="#modalSetoran">
                                             <i class="fa fa-plus"></i> Tambah Setoran
                                         </button>
+                                        @if ($isAdmin)
+                                            <button type="button" id="btn_add_setoran_custom" class="btn btn-warning me-2"
+                                                data-bs-toggle="modal" data-bs-target="#modalSetoranCustom">
+                                                <i class="fa fa-plus"></i> Setoran Custom
+                                            </button>
+                                        @endif
                                         <button type="button" id="btn_reload" class="btn btn-outline-gray me-2 active">
                                             <i class="fa fa-retweet" aria-hidden="true"></i>
                                         </button>
@@ -163,6 +169,63 @@
                 </div>
             </div>
         </div>
+        @if ($isAdmin)
+            <div class="modal fade" id="modalSetoranCustom" data-bs-backdrop="static" data-bs-keyboard="false"
+                tabindex="-1" aria-labelledby="modalSetoranCustomLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="modalSetoranCustomLabel">Setoran Custom</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form id="formSetoranCustom">
+                            @csrf
+                            <div class="modal-body">
+                                <div class="form-group mb-3">
+                                    <label>Tanggal</label>
+                                    <input type="text" class="form-control datetimepicker" id="custom_tanggal"
+                                        name="tanggal" placeholder="Pilih tanggal" autocomplete="off" required>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label>Shift</label>
+                                    <select class="form-select" id="custom_shift" name="shift" required>
+                                        <option value="">-- Pilih --</option>
+                                        <option value="PAGI">PAGI</option>
+                                        <option value="SORE">SORE</option>
+                                    </select>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label>Kasir</label>
+                                    <select class="form-select" id="custom_user_id" name="user_id" required>
+                                        @foreach ($users as $user)
+                                            <option value="{{ $user->id }}" @selected($user->id === auth()->id())>
+                                                {{ $user->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label>Uang Setoran</label>
+                                    <input type="number" class="form-control" id="custom_setoran" name="setoran"
+                                        placeholder="Masukkan jumlah uang setoran" min="0" required>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <button type="submit" class="btn btn-primary paid-continue-btn">Simpan</button>
+                                    </div>
+                                    <div class="col-6">
+                                        <button type="button" data-bs-dismiss="modal"
+                                            class="btn btn-primary paid-cancel-btn">Batal</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        @endif
         <div class="modal fade" id="modalExportInvoice" tabindex="-1" aria-labelledby="modalExportInvoiceLabel"
             aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
@@ -329,6 +392,102 @@
                                 html: msg
                             });
                         }
+                    });
+                });
+
+                // buka modal untuk setoran custom (admin)
+                $('#btn_add_setoran_custom').on('click', function() {
+                    $('#formSetoranCustom')[0].reset();
+                });
+
+                $('#formSetoranCustom').on('submit', function(e) {
+                    e.preventDefault();
+
+                    $.ajax({
+                        url: "{{ route('store-custom-setoran') }}",
+                        type: 'POST',
+                        data: $(this).serialize(),
+                        dataType: 'json',
+                        success: function(res) {
+                            $('#modalSetoranCustom').modal('hide');
+
+                            let selisih = res.data.selisih;
+                            let selisihClass = selisih === 0 ? 'text-success' : 'text-danger';
+                            let selisihLabel = selisih === 0 ?
+                                'Rp 0 (pas)' :
+                                (selisih > 0 ? '+' : '-') + 'Rp ' + formatRupiah(Math.abs(selisih));
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                html: res.message + `
+                    <hr>
+                    <div class="text-start">
+                        <div>Total transaksi tunai (pembulatan) tanggal tersebut: <b>Rp ${formatRupiah(res.data.total_tunai_customer)}</b></div>
+                        <div>Selisih dengan setoran: <b class="${selisihClass}">${selisihLabel}</b></div>
+                    </div>
+                `
+                            });
+
+                            $('#SetoranList').DataTable().ajax.reload(null, false);
+                            checkShiftStatus();
+                        },
+                        error: function(xhr) {
+                            let msg = 'Terjadi kesalahan saat menyimpan data.';
+                            if ((xhr.status === 422 || xhr.status === 403) && xhr.responseJSON) {
+                                msg = xhr.responseJSON.message ||
+                                    Object.values(xhr.responseJSON.errors || {}).map(e => e[0])
+                                    .join('<br>');
+                            }
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                html: msg
+                            });
+                        }
+                    });
+                });
+
+                // hapus setoran (admin)
+                $(document).on('click', '.btn-delete-setoran', function() {
+                    let id = $(this).data('id');
+
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Hapus Setoran?',
+                        text: 'Data setoran yang dihapus tidak dapat dikembalikan.',
+                        showCancelButton: true,
+                        confirmButtonText: 'Hapus',
+                        cancelButtonText: 'Batal',
+                        confirmButtonColor: '#d33'
+                    }).then(function(result) {
+                        if (!result.isConfirmed) return;
+
+                        $.ajax({
+                            url: "{{ url('setoran/delete') }}/" + id,
+                            type: 'DELETE',
+                            data: {
+                                _token: "{{ csrf_token() }}"
+                            },
+                            dataType: 'json',
+                            success: function(res) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil',
+                                    text: res.message
+                                });
+                                $('#SetoranList').DataTable().ajax.reload(null, false);
+                                checkShiftStatus();
+                            },
+                            error: function(xhr) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: (xhr.responseJSON && xhr.responseJSON.message) ||
+                                        'Terjadi kesalahan saat menghapus data.'
+                                });
+                            }
+                        });
                     });
                 });
 
