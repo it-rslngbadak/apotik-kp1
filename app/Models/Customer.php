@@ -82,4 +82,9 @@ class Customer extends Model
     {
         return $this->hasMany(TransaksiObat::class, 'customer_id', 'id');
     }
+
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'updated_by', 'id');
+    }
 }

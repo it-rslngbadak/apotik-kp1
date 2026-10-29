@@ -83,6 +83,7 @@
                                             <th>Nama Pengunjung</th>
                                             <th>Metode Bayar</th>
                                             <th>Status</th>
+                                            <th>Updated By</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
@@ -290,6 +291,10 @@
                         {
                             data: 'status',
                             name: 'status'
+                        },
+                        {
+                            data: 'updated_by',
+                            name: 'updated_by'
                         },
                         {
                             data: 'modify',

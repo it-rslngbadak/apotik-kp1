@@ -49,7 +49,7 @@ class CustomerService
             : \Carbon\Carbon::now();
 
         // ✅ Base query
-        $baseQuery = Customer::with('transaksiObat')
+        $baseQuery = Customer::with('transaksiObat', 'updatedBy')
             ->where('tanggal_registrasi', '>=', $dari_tgl)
             ->where('tanggal_registrasi', '<=', $sampai_tgl);
 
@@ -122,6 +122,7 @@ class CustomerService
                 "nama_customer" => $record->nama_customer,
                 "metode_bayar" => $record->metode_bayar,
                 "status"  => $statusBadge,
+                "updated_by" => $record->status === 'SELESAI' ? ($record->updatedBy->name ?? '-') : '-',
                 // "harga_satuan"  => number_format($record->harga_satuan, 0, ',', '.'),
                 "modify"       => $modify,
             ];
