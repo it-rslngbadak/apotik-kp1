@@ -14,6 +14,12 @@ class SetoranService
         'SORE' => '21:30',
     ];
 
+    // === Range jam transaksi kasir yang dihitung per shift ===
+    private const SHIFT_RANGE = [
+        'PAGI' => ['07:00:00', '15:00:59'],
+        'SORE' => ['15:01:00', '22:00:59'],
+    ];
+
     private const PRINT_ALLOWED_ROLES = ['Admin', 'Super Admin'];
 
     public static function getSetoranData($request)
@@ -170,7 +176,7 @@ class SetoranService
             throw new \RuntimeException("Setoran untuk shift {$shift} hari ini sudah diinput.");
         }
 
-        $totalTunai = self::getTotalTunaiCustomer($userId, $now);
+        $totalTunai = self::getTotalTunaiCustomer($userId, $now, $shift);
         $selisih    = (int) $data['setoran'] - $totalTunai;
 
         return Setoran::create([
@@ -207,7 +213,7 @@ class SetoranService
             }
         }
 
-        $totalTunai = self::getTotalTunaiCustomer($setoran->user_id, $setoran->tanggal);
+        $totalTunai = self::getTotalTunaiCustomer($setoran->user_id, $setoran->tanggal, $shift);
         $selisih    = (int) $data['setoran'] - $totalTunai;
 
         $setoran->update([
@@ -235,7 +241,7 @@ class SetoranService
         $tanggal = Carbon::createFromFormat('d-m-Y', $data['tanggal'])
             ->setTimeFromTimeString(self::SHIFT_OPEN_TIME[$shift]);
 
-        $totalTunai = self::getTotalTunaiCustomer($userId, $tanggal);
+        $totalTunai = self::getTotalTunaiCustomer($userId, $tanggal, $shift);
         $selisih    = (int) $data['setoran'] - $totalTunai;
 
         return Setoran::create([
@@ -259,12 +265,26 @@ class SetoranService
         return $user && in_array($user->role_name, self::PRINT_ALLOWED_ROLES);
     }
 
-    private static function getTotalTunaiCustomer(int $userId, Carbon $date): int
+    /**
+     * Range waktu [mulai, selesai] transaksi kasir untuk shift pada tanggal tertentu.
+     */
+    public static function getShiftRange(string $shift, Carbon $date): array
+    {
+        [$start, $end] = self::SHIFT_RANGE[strtoupper($shift)];
+        // dd($date->copy()->setTimeFromTimeString($start), $date->copy()->setTimeFromTimeString($end));
+        return [
+            $date->copy()->setTimeFromTimeString($start),
+            $date->copy()->setTimeFromTimeString($end),
+        ];
+    }
+
+    private static function getTotalTunaiCustomer(int $userId, Carbon $date, string $shift): int
     {
         $customers = Customer::with('transaksiObat')
+            ->where('status', 'SELESAI')
             ->where('metode_bayar', 'TUNAI')
             ->where('updated_by', $userId)
-            ->whereDate('updated_at', $date->toDateString())
+            ->whereBetween('tanggal_registrasi', self::getShiftRange($shift, $date))
             ->get();
 
         return (int) $customers->sum(fn(Customer $c) => $c->total_biaya);

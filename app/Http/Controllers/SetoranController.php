@@ -134,17 +134,21 @@ class SetoranController extends Controller
         if (! SetoranService::canPrint($setoran, Auth::user())) {
             abort(403, 'Anda tidak memiliki akses untuk mencetak laporan setoran ini.');
         }
+        // dd($setoran);
+        $shiftRange = SetoranService::getShiftRange($setoran->shift, $setoran->tanggal);
 
         $customers = \App\Models\Customer::with('transaksiObat')
+            ->where('status', 'SELESAI')
             ->where('metode_bayar', 'TUNAI')
             ->where('updated_by', $setoran->user_id)
-            ->whereDate('updated_at', $setoran->tanggal->toDateString())
+            ->whereBetween('tanggal_registrasi', $shiftRange)
             ->orderBy('no_registrasi')
             ->get();
 
         $pendapatan = \App\Models\Customer::with('transaksiObat')
+            ->where('status', 'SELESAI')
             ->where('updated_by', $setoran->user_id)
-            ->whereDate('updated_at', $setoran->tanggal->toDateString())
+            ->whereBetween('tanggal_registrasi', $shiftRange)
             ->get()
             ->groupBy('metode_bayar')
             ->map(function ($group, $metode) {
