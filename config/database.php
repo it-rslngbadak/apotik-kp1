@@ -95,10 +95,10 @@ return [
         ],
         'odbc' => [
             'driver'   => 'odbc',
-            'dsn' => 'Driver={SQL Anywhere 12};' .
+            'dsn'      => 'Driver={SQL Anywhere 12};' .
                 'CommLinks=tcpip(host=1.2.3.20;port=2638);' .
                 'ServerName=rslngbadak;' .
-                'DatabaseName=rslngbadak;' .
+                'DatabaseName=dbklinikrslngbadak;' .
                 'UID=dba;' .
                 'PWD=rs_B4d4k_012024*;',
             'host'     => env('DB_HOST_SYBASE'),
