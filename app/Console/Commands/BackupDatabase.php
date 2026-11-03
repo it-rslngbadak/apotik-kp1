@@ -16,7 +16,7 @@ class BackupDatabase extends Command
     {
         // 1. Buat nama file dengan tanggal & jam sekarang
         //    Contoh hasil: backup_2024-01-15_01-00-00.sql
-        $date     = now()->format('Y-m-d_H-i-s');
+        $date = now()->format('Y-m-d_H-i-s');
         $filename = "backup_{$date}.sql";
 
         // 2. Tentukan folder penyimpanan backup
@@ -29,11 +29,13 @@ class BackupDatabase extends Command
         }
 
         // 4. Ambil konfigurasi database dari .env otomatis
-        $host     = env('DB_HOST', '127.0.0.1');  // localhost
-        $port     = env('DB_PORT', '5432');         // 5433 (dari .env kamu)
-        $database = env('DB_DATABASE');             // verifikasi_rslngbadak
-        $username = env('DB_USERNAME');             // postgres
-        $password = env('DB_PASSWORD');             // 123456
+        $db = config('database.connections.' . config('database.default'));
+
+        $host     = $db['host'] ?? '127.0.0.1';
+        $port     = $db['port'] ?? '5432';
+        $database = $db['database'] ?? null;
+        $username = $db['username'] ?? null;
+        $password = $db['password'] ?? '';
 
         // 5. Set password sebagai environment variable
         //    (cara aman agar password tidak muncul di log sistem)
