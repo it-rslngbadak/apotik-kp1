@@ -21,7 +21,7 @@ class BackupDatabase extends Command
 
         // 2. Tentukan folder penyimpanan backup
         //    Lokasi: storage/app/backups/
-        $backupDir = storage_path('app/backups');
+        $backupDir = config('backup.path', storage_path('app/backups'));
 
         // 3. Buat folder jika belum ada
         if (!is_dir($backupDir)) {
