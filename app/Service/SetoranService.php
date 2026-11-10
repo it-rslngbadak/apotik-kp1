@@ -16,8 +16,8 @@ class SetoranService
 
     // === Range jam transaksi kasir yang dihitung per shift ===
     private const SHIFT_RANGE = [
-        'PAGI' => ['07:00:00', '15:00:59'],
-        'SORE' => ['15:01:00', '22:00:59'],
+        'PAGI' => ['07:00:00', '14:29:59'],
+        'SORE' => ['14:30:00', '22:10:00'],
     ];
 
     private const PRINT_ALLOWED_ROLES = ['Admin', 'Super Admin'];
