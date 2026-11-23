@@ -17,6 +17,14 @@
             </div>
             {{-- message --}}
             {!! Toastr::message() !!}
+            @if ($setoranHariIni)
+                <div class="alert alert-warning py-2">
+                    <i class="fa fa-lock"></i>
+                    Anda sudah setor shift <b>{{ $setoranHariIni->shift }}</b> hari ini pukul
+                    {{ $setoranHariIni->tanggal->format('H:i') }}. Transaksi kasir untuk akun Anda dikunci,
+                    silakan gunakan user kasir lain.
+                </div>
+            @endif
             <div class="student-group-form mb-3">
                 <div class="row">
                     <div class="col-lg-3 col-md-6">
@@ -81,6 +89,7 @@
                                             <th>Tanggal Pelayanan</th>
                                             <th>No Telp</th>
                                             <th>Nama Pengunjung</th>
+                                            <th class="text-end">Total Transaksi</th>
                                             <th>Metode Bayar</th>
                                             <th>Status</th>
                                             <th>Updated By</th>
@@ -128,10 +137,10 @@
     </div> --}}
         <div class="modal fade" id="modalEditCustomer" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
             aria-labelledby="staticBackdropLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h1 class="modal-title fs-5" id="staticBackdropLabel">Modal title</h1>
+                        <h1 class="modal-title fs-5" id="staticBackdropLabel">Detail Transaksi</h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <form id="formEditCustomer">
@@ -143,7 +152,7 @@
                             <div class="form-group mb-3">
                                 <label>Rincian Transaksi Obat</label>
                                 <div class="table-responsive"
-                                    style="max-height: 220px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 4px;">
+                                    style="max-height: 320px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 4px;">
                                     <table class="table table-sm table-bordered mb-0" id="tabelRincianObat">
                                         <thead class="table-light">
                                             <tr>
@@ -165,45 +174,52 @@
                                     </table>
                                 </div>
                             </div>
-                            <div class="form-group mb-3">
-                                <label>Metode Pembayaran</label>
-                                <select class="form-select" id="edit_metode_pembayaran" name="metode_bayar">
-                                    <option value="">-- Pilih --</option>
-                                    <option value="QRIS">QRIS</option>
-                                    <option value="TUNAI">TUNAI</option>
-                                    <option value="TRANSFER">TRANSFER</option>
-                                    <option value="DEBIT/KREDIT">DEBIT/KREDIT</option>
-                                </select>
-                            </div>
-                            {{-- muncul hanya kalau metode bayar = TUNAI --}}
-                            <div class="form-group mb-2" id="wrapper_uang_tunai" style="display:none;">
-                                <label>Uang Tunai Diterima</label>
-                                <input type="number" class="form-control" id="edit_uang_tunai" name="uang_tunai"
-                                    placeholder="Masukkan jumlah uang tunai" min="0">
+                            <div class="row">
+                                <div class="col-md-4 form-group mb-3">
+                                    <label>Metode Pembayaran</label>
+                                    <select class="form-select" id="edit_metode_pembayaran" name="metode_bayar">
+                                        <option value="">-- Pilih --</option>
+                                        <option value="QRIS">QRIS</option>
+                                        <option value="TUNAI">TUNAI</option>
+                                        <option value="TRANSFER">TRANSFER</option>
+                                        <option value="DEBIT/KREDIT">DEBIT/KREDIT</option>
+                                    </select>
+                                </div>
+                                {{-- muncul hanya kalau metode bayar = TUNAI --}}
+                                <div class="col-md-4 form-group mb-3" id="wrapper_uang_tunai" style="display:none;">
+                                    <label>Uang Tunai Diterima</label>
+                                    <input type="number" class="form-control" id="edit_uang_tunai" name="uang_tunai"
+                                        placeholder="Masukkan jumlah uang tunai" min="0">
+                                </div>
+
+                                <div class="col-md-4 form-group mb-3" id="wrapper_kembalian" style="display:none;">
+                                    <label>Kembalian</label>
+                                    <input type="text" class="form-control" id="edit_kembalian" name="kembalian"
+                                        readonly>
+                                </div>
                             </div>
 
-                            <div class="form-group mb-2" id="wrapper_kembalian" style="display:none;">
-                                <label>Kembalian</label>
-                                <input type="text" class="form-control" id="edit_kembalian" name="kembalian"
-                                    readonly>
-                            </div>
-
-                            <div class="form-group mb-2">
-                                <label>Nama Pengunjung</label>
-                                <input type="text" class="form-control" id="edit_nama_customer" name="nama_customer">
-                            </div>
-                            <div class="form-group mb-2">
-                                <label>No HP</label>
-                                <input type="text" class="form-control" id="edit_no_hp" name="no_hp">
+                            <div class="row">
+                                <div class="col-md-6 form-group mb-2">
+                                    <label>Nama Pengunjung</label>
+                                    <input type="text" class="form-control" id="edit_nama_customer"
+                                        name="nama_customer">
+                                </div>
+                                <div class="col-md-6 form-group mb-2">
+                                    <label>No HP</label>
+                                    <input type="text" class="form-control" id="edit_no_hp" name="no_hp">
+                                </div>
                             </div>
                         </div>
                         <div class="modal-footer">
                             <div class="row">
                                 <div class="col-6">
-                                    <button type="submit" class="btn btn-primary paid-continue-btn">Simpan</button>
+                                    <button type="submit" id="btnSimpanEditCustomer"
+                                        class="btn btn-primary paid-continue-btn">Simpan</button>
                                 </div>
                                 <div class="col-6">
-                                    <button data-bs-dismiss="modal" class="btn btn-primary paid-cancel-btn">Batal</button>
+                                    <button type="button" data-bs-dismiss="modal"
+                                        class="btn btn-primary paid-cancel-btn">Batal</button>
                                 </div>
                             </div>
                         </div>
@@ -253,7 +269,9 @@
         {{-- get user all js --}}
         <script type="text/javascript">
             $(document).ready(function() {
-                var currentUserId = "{{ Session::get('id') }}";
+                var currentUserId = "{{ auth()->id() }}";
+                // true kalau user ini sudah setor hari ini -> tidak boleh bertransaksi lagi
+                var kasirTerkunci = @json((bool) $setoranHariIni);
                 $('.select2').select2();
                 $('#CustomerList').DataTable({
                     processing: true,
@@ -283,6 +301,13 @@
                         {
                             data: 'nama_customer',
                             name: 'nama_customer'
+                        },
+                        {
+                            data: 'total_transaksi',
+                            name: 'total_transaksi',
+                            className: 'text-end text-nowrap',
+                            orderable: false,
+                            searchable: false
                         },
                         {
                             data: 'metode_bayar',
@@ -369,13 +394,13 @@
                     renderRincianObat($btn.data('items'));
                     toggleFieldTunai();
 
-                    // ✅ tombol Simpan hanya tampil kalau data ini di-update_by user yang sedang login
-                    var updatedBy = $btn.data('updated_by');
-                    if (String(updatedBy) === String(currentUserId)) {
-                        $('#btnSimpanEditCustomer').show();
-                    } else {
-                        $('#btnSimpanEditCustomer').hide();
-                    }
+                    $('#staticBackdropLabel').text('Detail Transaksi - ' + $btn.data('no_registrasi'));
+
+                    // ✅ tombol Simpan hanya tampil kalau transaksi belum dibayar / dibayar oleh user yang login,
+                    // dan user yang login belum setor hari ini
+                    var updatedBy = String($btn.data('updated_by') || '');
+                    var bolehSimpan = !kasirTerkunci && (updatedBy === '' || updatedBy === String(currentUserId));
+                    $('#btnSimpanEditCustomer').toggle(bolehSimpan);
 
                     $('#modalEditCustomer').modal('show');
                 });

@@ -9,6 +9,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Validation\Rule;
 
 class SetoranController extends Controller
 {
@@ -16,8 +17,9 @@ class SetoranController extends Controller
     {
         $isAdmin = SetoranService::isAdmin(Auth::user());
         $users   = $isAdmin ? User::orderBy('name')->get(['id', 'name']) : collect();
+        $daftarShift = SetoranService::daftarShift();
 
-        return view('apotik.setoran.index', compact('isAdmin', 'users'));
+        return view('apotik.setoran.index', compact('isAdmin', 'users', 'daftarShift'));
     }
 
     public function getDataSetoran(Request $request)
@@ -32,14 +34,14 @@ class SetoranController extends Controller
 
     public function shiftStatus()
     {
-        return response()->json(SetoranService::getShiftStatus());
+        return response()->json(SetoranService::getShiftStatus((int) Auth::id()));
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'setoran' => 'required|numeric|min:0',
-            'shift'   => 'required|in:PAGI,SORE',
+            'shift'   => ['required', Rule::in(array_keys(SetoranService::daftarShift()))],
         ]);
 
         try {
@@ -62,7 +64,7 @@ class SetoranController extends Controller
     {
         $request->validate([
             'setoran' => 'required|numeric|min:0',
-            'shift'   => 'required|in:PAGI,SORE',
+            'shift'   => ['required', Rule::in(array_keys(SetoranService::daftarShift()))],
         ]);
 
         $setoran = Setoran::findOrFail($id);
@@ -93,7 +95,7 @@ class SetoranController extends Controller
         $request->validate([
             'tanggal' => 'required|date_format:d-m-Y',
             'setoran' => 'required|numeric|min:0',
-            'shift'   => 'required|in:PAGI,SORE',
+            'shift'   => ['required', Rule::in(array_keys(SetoranService::daftarShift()))],
             'user_id' => 'required|exists:pgsql.users,id',
         ]);
 
@@ -134,8 +136,7 @@ class SetoranController extends Controller
         if (! SetoranService::canPrint($setoran, Auth::user())) {
             abort(403, 'Anda tidak memiliki akses untuk mencetak laporan setoran ini.');
         }
-        // dd($setoran);
-        $shiftRange = SetoranService::getShiftRange($setoran->shift, $setoran->tanggal);
+        $shiftRange = SetoranService::getPeriode($setoran->user_id, $setoran->tanggal, $setoran->shift);
 
         $customers = \App\Models\Customer::with('transaksiObat')
             ->where('status', 'SELESAI')

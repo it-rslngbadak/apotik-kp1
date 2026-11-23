@@ -148,10 +148,9 @@
                             </div>
                             <div class="form-group mb-3">
                                 <label>Shift</label>
+                                {{-- opsi diisi otomatis sesuai jadwal hari ini lewat checkShiftStatus() --}}
                                 <select class="form-select" id="edit_shift" name="shift" required>
                                     <option value="">-- Pilih --</option>
-                                    <option value="PAGI">PAGI</option>
-                                    <option value="SORE">SORE</option>
                                 </select>
                             </div>
                         </div>
@@ -161,7 +160,8 @@
                                     <button type="submit" class="btn btn-primary paid-continue-btn">Simpan</button>
                                 </div>
                                 <div class="col-6">
-                                    <button data-bs-dismiss="modal" class="btn btn-primary paid-cancel-btn">Batal</button>
+                                    <button type="button" data-bs-dismiss="modal"
+                                        class="btn btn-primary paid-cancel-btn">Batal</button>
                                 </div>
                             </div>
                         </div>
@@ -190,8 +190,9 @@
                                     <label>Shift</label>
                                     <select class="form-select" id="custom_shift" name="shift" required>
                                         <option value="">-- Pilih --</option>
-                                        <option value="PAGI">PAGI</option>
-                                        <option value="SORE">SORE</option>
+                                        @foreach ($daftarShift as $shift => $labelHari)
+                                            <option value="{{ $shift }}">{{ $shift }} ({{ $labelHari }})</option>
+                                        @endforeach
                                     </select>
                                 </div>
                                 <div class="form-group mb-3">
@@ -338,7 +339,31 @@
 
                 $('#formSetoran').on('submit', function(e) {
                     e.preventDefault();
+                    let form = this;
                     let id = $('#setoran_id').val();
+
+                    if (id) {
+                        kirimSetoran(form, id);
+                        return;
+                    }
+
+                    // setoran = tutup kasir: minta konfirmasi dulu
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Tutup kasir & setor?',
+                        html: 'Setelah setor, akun Anda <b>tidak bisa melakukan transaksi lagi hari ini</b> ' +
+                            'dan tidak bisa setor untuk shift lain.<br>Pastikan kasir shift berikutnya sudah siap.',
+                        showCancelButton: true,
+                        confirmButtonText: 'Ya, setor sekarang',
+                        cancelButtonText: 'Batal'
+                    }).then(function(result) {
+                        if (result.isConfirmed) {
+                            kirimSetoran(form, id);
+                        }
+                    });
+                });
+
+                function kirimSetoran(form, id) {
                     let url = id ?
                         "{{ url('setoran/update') }}/" + id :
                         "{{ route('store-setoran') }}";
@@ -346,7 +371,7 @@
                     $.ajax({
                         url: url,
                         type: 'POST',
-                        data: $(this).serialize(),
+                        data: $(form).serialize(),
                         dataType: 'json',
                         success: function(res) {
                             $('#modalSetoran').modal('hide');
@@ -393,7 +418,7 @@
                             });
                         }
                     });
-                });
+                }
 
                 // buka modal untuk setoran custom (admin)
                 $('#btn_add_setoran_custom').on('click', function() {
@@ -500,26 +525,58 @@
                 return angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
             }
 
+            function escapeHtml(text) {
+                return $('<div>').text(text || '').html();
+            }
+
             function checkShiftStatus() {
                 $.get("{{ route('setoran.shift-status') }}", function(res) {
                     let banner = '';
-                    $.each(res, function(shift, info) {
-                        if (info.can_input) {
-                            banner += `<div class="alert alert-success py-2 mb-1">
-                        <i class="fa fa-bell"></i> Sudah waktunya input setoran shift <b>${shift}</b> (dibuka pukul ${info.open_at}).
+                    let userSudahSetor = !!res.setoran_user;
+
+                    if (userSudahSetor) {
+                        banner += `<div class="alert alert-info py-2 mb-1">
+                        <i class="fa fa-lock"></i> Anda sudah setor shift <b>${res.setoran_user.shift}</b> hari ini pukul ${res.setoran_user.jam}.
+                        Akun Anda tidak bisa bertransaksi atau setor lagi hari ini, shift berikutnya harus memakai user kasir lain.
                     </div>`;
-                        } else if (info.already_input) {
+                    }
+
+                    // opsi shift di form mengikuti jadwal hari ini (Senin–Jumat: PAGI/SORE, Sabtu–Minggu: 1 shift)
+                    let $select = $('#edit_shift');
+                    let selected = $select.val();
+                    $select.empty().append('<option value="">-- Pilih --</option>');
+
+                    $.each(res.shifts, function(shift, info) {
+                        if (info.already_input) {
                             banner += `<div class="alert alert-secondary py-2 mb-1">
-                        <i class="fa fa-check"></i> Setoran shift <b>${shift}</b> hari ini sudah diinput.
+                        <i class="fa fa-check"></i> Setoran shift <b>${shift}</b> hari ini sudah diinput${info.kasir ? ' oleh ' + escapeHtml(info.kasir) : ''}.
                     </div>`;
-                        } else {
+                        } else if (!info.is_open) {
                             banner += `<div class="alert alert-light py-2 mb-1 text-muted">
                         <i class="fa fa-clock"></i> Setoran shift <b>${shift}</b> dibuka pukul ${info.open_at}.
                     </div>`;
+                        } else if (info.menunggu) {
+                            banner += `<div class="alert alert-warning py-2 mb-1">
+                        <i class="fa fa-hourglass-half"></i> Setoran shift <b>${shift}</b> sudah dibuka, tetapi setoran shift <b>${info.menunggu}</b> harus diinput terlebih dahulu.
+                    </div>`;
+                        } else {
+                            banner += `<div class="alert alert-success py-2 mb-1">
+                        <i class="fa fa-bell"></i> Sudah waktunya input setoran shift <b>${shift}</b> (dibuka pukul ${info.open_at}).
+                    </div>`;
                         }
 
-                        $('#edit_shift option[value="' + shift + '"]').prop('disabled', !info.can_input);
+                        $select.append($('<option>', {
+                            value: shift,
+                            text: shift,
+                            disabled: !info.can_input || userSudahSetor
+                        }));
                     });
+
+                    if (selected && $select.find('option[value="' + selected + '"]:not(:disabled)').length) {
+                        $select.val(selected);
+                    }
+
+                    $('#btn_add_setoran').prop('disabled', userSudahSetor);
                     $('#shiftStatusBanner').html(banner);
                 });
             }
