@@ -13,7 +13,6 @@ use Brian2694\Toastr\Facades\Toastr;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Session;
 
 class CustomerService
 {
@@ -120,6 +119,7 @@ class CustomerService
                     ->translatedFormat('d M Y H:i'),
                 "no_hp" => $record->no_hp,
                 "nama_customer" => $record->nama_customer,
+                "total_transaksi" => 'Rp ' . number_format($record->total_biaya, 0, ',', '.'),
                 "metode_bayar" => $record->metode_bayar,
                 "status"  => $statusBadge,
                 "updated_by" => $record->status === 'SELESAI' ? ($record->updatedBy->name ?? '-') : '-',
@@ -210,15 +210,38 @@ class CustomerService
 
     public static function updateCustomer($request)
     {
+        $customer = Customer::findOrFail($request->id);
+        $userId   = (int) auth()->id();
+
+        // transaksi yang sudah dibayar hanya boleh diubah oleh kasir yang membayarnya
+        if ($customer->updated_by !== null && (int) $customer->updated_by !== $userId) {
+            return [
+                'status'  => 'failed',
+                'message' => 'Anda tidak memiliki akses untuk mengubah data ini.',
+            ];
+        }
+
+        // kasir yang sudah setor hari ini tidak boleh bertransaksi lagi
+        if ($setoran = SetoranService::setoranUser($userId, Carbon::now())) {
+            return [
+                'status'  => 'failed',
+                'message' => "Anda sudah setor shift {$setoran->shift} hari ini, transaksi kasir untuk akun Anda dikunci. Gunakan user kasir lain.",
+            ];
+        }
+
+        // transaksi yang sudah masuk setoran tidak boleh diubah lagi (angka setoran bisa berubah)
+        if (
+            $customer->updated_by !== null
+            && SetoranService::setoranUser((int) $customer->updated_by, Carbon::parse($customer->tanggal_registrasi))
+        ) {
+            return [
+                'status'  => 'failed',
+                'message' => 'Transaksi ini sudah masuk setoran dan tidak bisa diubah lagi.',
+            ];
+        }
+
         DB::beginTransaction();
         try {
-            $customer = Customer::findOrFail($request->id);
-            if ($customer->updated_by != Session::get('id')) {
-                return [
-                    'status'  => 'failed',
-                    'message' => 'Anda tidak memiliki akses untuk mengubah data ini.',
-                ];
-            }
             $customer->metode_bayar = $request->metode_bayar;
             $customer->nama_customer = $request->nama_customer;
             $customer->no_hp = $request->no_hp;

@@ -5,13 +5,18 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Service\CustomerService;
+use App\Service\SetoranService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class CustomerControlller extends Controller
 {
     public function index()
     {
-        return view('apotik.index');
+        // kasir yang sudah setor hari ini tidak boleh bertransaksi lagi
+        $setoranHariIni = SetoranService::setoranUser((int) auth()->id(), Carbon::now());
+
+        return view('apotik.index', compact('setoranHariIni'));
     }
 
     public function getDataCustomers(Request $request)

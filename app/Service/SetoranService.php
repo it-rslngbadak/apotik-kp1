@@ -8,14 +8,27 @@ use Carbon\Carbon;
 
 class SetoranService
 {
-    // === Jam buka input per shift (silakan sesuaikan) ===
-    private const SHIFT_OPEN_TIME = [
-        'PAGI' => '14:30',
-        'SORE' => '21:30',
+    // === Jam buka input setoran per jenis hari ===
+    // Urutan shift = urutan wajib setor (SORE baru bisa setor setelah PAGI setor).
+    private const JADWAL_SETORAN = [
+        'WEEKDAY' => [ // Senin–Jumat: 2 shift
+            'PAGI' => '14:30',
+            'SORE' => '21:30',
+        ],
+        'WEEKEND' => [ // Sabtu–Minggu: 1 shift saja (apotek buka 08:00–16:00)
+            'FULL' => '15:30',
+        ],
     ];
 
-    // === Range jam transaksi kasir yang dihitung per shift ===
-    private const SHIFT_RANGE = [
+    private const LABEL_HARI = [
+        'WEEKDAY' => 'Senin–Jumat',
+        'WEEKEND' => 'Sabtu–Minggu',
+    ];
+
+    // Range jam lama. HANYA dipakai untuk data setoran lama di mana 1 user setor lebih dari
+    // sekali di hari yang sama (sebelum aturan 1 user = 1 setoran per hari berlaku),
+    // supaya cetak ulang laporan lama tidak berubah.
+    private const LEGACY_SHIFT_RANGE = [
         'PAGI' => ['07:00:00', '14:29:59'],
         'SORE' => ['14:30:00', '22:10:00'],
     ];
@@ -130,41 +143,86 @@ class SetoranService
     }
 
     /**
-     * Status ketersediaan input untuk tiap shift hari ini.
+     * Semua shift yang dikenal => label hari berlakunya. Dipakai untuk validasi & opsi form.
+     */
+    public static function daftarShift(): array
+    {
+        $daftar = [];
+
+        foreach (self::JADWAL_SETORAN as $jenisHari => $jadwal) {
+            foreach (array_keys($jadwal) as $shift) {
+                $daftar[$shift] = self::LABEL_HARI[$jenisHari];
+            }
+        }
+
+        return $daftar;
+    }
+
+    /**
+     * Shift yang berlaku pada tanggal tersebut => jam buka input setoran.
+     */
+    public static function jadwalShift(Carbon $date): array
+    {
+        return self::JADWAL_SETORAN[self::jenisHari($date)];
+    }
+
+    /**
+     * Setoran milik user pada tanggal tertentu. Satu user hanya boleh 1 setoran per hari,
+     * dan user yang sudah setor hari ini tidak boleh bertransaksi lagi di kasir.
+     */
+    public static function setoranUser(int $userId, Carbon $date): ?Setoran
+    {
+        return Setoran::where('user_id', $userId)
+            ->whereDate('tanggal', $date->toDateString())
+            ->first();
+    }
+
+    /**
+     * Status ketersediaan input untuk tiap shift hari ini + status setoran user yang login.
      * Dipakai untuk notifikasi & untuk enable/disable opsi shift di form.
      */
-    public static function getShiftStatus(): array
+    public static function getShiftStatus(int $userId): array
     {
-        $now = Carbon::now();
-        $result = [];
+        $now            = Carbon::now();
+        $setoranHariIni = Setoran::with('user')->today()->get()->keyBy('shift');
+        $shifts         = [];
 
-        foreach (self::SHIFT_OPEN_TIME as $shift => $openTime) {
-            $openAt = $now->copy()->setTimeFromTimeString($openTime);
+        foreach (self::jadwalShift($now) as $shift => $openTime) {
+            $openAt   = $now->copy()->setTimeFromTimeString($openTime);
+            $setoran  = $setoranHariIni->get($shift);
+            $wajib    = self::shiftSebelumnya($shift, $now);
+            $menunggu = ($wajib && ! $setoranHariIni->has($wajib)) ? $wajib : null;
+            $isOpen   = $now->gte($openAt);
 
-            $alreadyInput = Setoran::today()->where('shift', $shift)->exists();
-            $isOpen       = $now->gte($openAt);
-
-            $result[$shift] = [
+            $shifts[$shift] = [
                 'open_at'       => $openAt->format('H:i'),
                 'is_open'       => $isOpen,
-                'already_input' => $alreadyInput,
-                'can_input'     => $isOpen && ! $alreadyInput,
+                'already_input' => (bool) $setoran,
+                'kasir'         => $setoran?->user?->name,
+                'menunggu'      => $menunggu,
+                'can_input'     => $isOpen && ! $setoran && ! $menunggu,
             ];
         }
 
-        return $result;
+        $milikUser = self::setoranUser($userId, $now);
+
+        return [
+            'hari'         => self::LABEL_HARI[self::jenisHari($now)],
+            'shifts'       => $shifts,
+            'setoran_user' => $milikUser
+                ? ['shift' => $milikUser->shift, 'jam' => $milikUser->tanggal->format('H:i')]
+                : null,
+        ];
     }
 
     public static function store(array $data, int $userId): Setoran
     {
         $shift = strtoupper($data['shift'] ?? '');
+        $now   = Carbon::now();
 
-        if (! array_key_exists($shift, self::SHIFT_OPEN_TIME)) {
-            throw new \InvalidArgumentException('Shift tidak valid.');
-        }
+        self::pastikanShiftBerlaku($shift, $now);
 
-        $now    = Carbon::now();
-        $openAt = $now->copy()->setTimeFromTimeString(self::SHIFT_OPEN_TIME[$shift]);
+        $openAt = $now->copy()->setTimeFromTimeString(self::jadwalShift($now)[$shift]);
 
         if ($now->lt($openAt)) {
             throw new \RuntimeException(
@@ -172,8 +230,22 @@ class SetoranService
             );
         }
 
+        if ($milikUser = self::setoranUser($userId, $now)) {
+            throw new \RuntimeException(
+                "Anda sudah setor shift {$milikUser->shift} hari ini. Setoran shift berikutnya harus menggunakan user kasir lain."
+            );
+        }
+
         if (Setoran::today()->where('shift', $shift)->exists()) {
             throw new \RuntimeException("Setoran untuk shift {$shift} hari ini sudah diinput.");
+        }
+
+        $wajib = self::shiftSebelumnya($shift, $now);
+
+        if ($wajib && ! Setoran::today()->where('shift', $wajib)->exists()) {
+            throw new \RuntimeException(
+                "Setoran shift {$wajib} hari ini belum diinput. Setoran shift {$shift} baru bisa dilakukan setelah setoran shift {$wajib}."
+            );
         }
 
         $totalTunai = self::getTotalTunaiCustomer($userId, $now, $shift);
@@ -198,9 +270,7 @@ class SetoranService
 
         $shift = strtoupper($data['shift'] ?? '');
 
-        if (! array_key_exists($shift, self::SHIFT_OPEN_TIME)) {
-            throw new \InvalidArgumentException('Shift tidak valid.');
-        }
+        self::pastikanShiftBerlaku($shift, $setoran->tanggal);
 
         if ($shift !== $setoran->shift) {
             $conflict = Setoran::today()
@@ -227,19 +297,24 @@ class SetoranService
     }
 
     /**
-     * Input setoran custom (khusus admin): tanggal & shift bebas dipilih,
-     * tanpa batasan jam buka shift maupun duplikasi shift.
+     * Input setoran custom (khusus admin): tanggal & shift bebas dipilih, tanpa batasan
+     * jam buka maupun urutan shift. Tetap wajib: shift sesuai jenis hari, dan 1 user
+     * hanya 1 setoran per hari (kalau tidak, transaksi hari itu terhitung dua kali).
      */
     public static function storeCustom(array $data, int $userId): Setoran
     {
-        $shift = strtoupper($data['shift'] ?? '');
+        $shift   = strtoupper($data['shift'] ?? '');
+        $tanggal = Carbon::createFromFormat('d-m-Y', $data['tanggal']);
 
-        if (! array_key_exists($shift, self::SHIFT_OPEN_TIME)) {
-            throw new \InvalidArgumentException('Shift tidak valid.');
+        self::pastikanShiftBerlaku($shift, $tanggal);
+
+        if ($milikUser = self::setoranUser($userId, $tanggal)) {
+            throw new \RuntimeException(
+                "Kasir ini sudah punya setoran shift {$milikUser->shift} pada tanggal {$tanggal->format('d-m-Y')}. Satu user hanya boleh 1 setoran per hari."
+            );
         }
 
-        $tanggal = Carbon::createFromFormat('d-m-Y', $data['tanggal'])
-            ->setTimeFromTimeString(self::SHIFT_OPEN_TIME[$shift]);
+        $tanggal->setTimeFromTimeString(self::jadwalShift($tanggal)[$shift]);
 
         $totalTunai = self::getTotalTunaiCustomer($userId, $tanggal, $shift);
         $selisih    = (int) $data['setoran'] - $totalTunai;
@@ -266,16 +341,27 @@ class SetoranService
     }
 
     /**
-     * Range waktu [mulai, selesai] transaksi kasir untuk shift pada tanggal tertentu.
+     * Periode [mulai, selesai] transaksi kasir yang dihitung untuk setoran:
+     * 1 hari penuh milik user tsb (user sudah tidak bisa bertransaksi setelah setor).
      */
-    public static function getShiftRange(string $shift, Carbon $date): array
+    public static function getPeriode(int $userId, Carbon $date, string $shift): array
     {
-        [$start, $end] = self::SHIFT_RANGE[strtoupper($shift)];
-        // dd($date->copy()->setTimeFromTimeString($start), $date->copy()->setTimeFromTimeString($end));
-        return [
-            $date->copy()->setTimeFromTimeString($start),
-            $date->copy()->setTimeFromTimeString($end),
-        ];
+        $shift = strtoupper($shift);
+
+        $jumlahSetoranUser = Setoran::where('user_id', $userId)
+            ->whereDate('tanggal', $date->toDateString())
+            ->count();
+
+        if ($jumlahSetoranUser > 1 && isset(self::LEGACY_SHIFT_RANGE[$shift])) {
+            [$start, $end] = self::LEGACY_SHIFT_RANGE[$shift];
+
+            return [
+                $date->copy()->setTimeFromTimeString($start),
+                $date->copy()->setTimeFromTimeString($end),
+            ];
+        }
+
+        return [$date->copy()->startOfDay(), $date->copy()->endOfDay()];
     }
 
     private static function getTotalTunaiCustomer(int $userId, Carbon $date, string $shift): int
@@ -284,10 +370,41 @@ class SetoranService
             ->where('status', 'SELESAI')
             ->where('metode_bayar', 'TUNAI')
             ->where('updated_by', $userId)
-            ->whereBetween('tanggal_registrasi', self::getShiftRange($shift, $date))
+            ->whereBetween('tanggal_registrasi', self::getPeriode($userId, $date, $shift))
             ->get();
 
         return (int) $customers->sum(fn(Customer $c) => $c->total_biaya);
+    }
+
+    private static function jenisHari(Carbon $date): string
+    {
+        return $date->isWeekend() ? 'WEEKEND' : 'WEEKDAY';
+    }
+
+    /**
+     * Shift yang wajib sudah setor sebelum shift ini (null kalau shift pertama).
+     */
+    private static function shiftSebelumnya(string $shift, Carbon $date): ?string
+    {
+        $urutan = array_keys(self::jadwalShift($date));
+        $index  = array_search($shift, $urutan, true);
+
+        return ($index !== false && $index > 0) ? $urutan[$index - 1] : null;
+    }
+
+    private static function pastikanShiftBerlaku(string $shift, Carbon $date): void
+    {
+        $jadwal = self::jadwalShift($date);
+
+        if (! array_key_exists($shift, $jadwal)) {
+            throw new \InvalidArgumentException(sprintf(
+                'Shift %s tidak berlaku pada tanggal %s (%s). Shift yang tersedia: %s.',
+                $shift ?: '-',
+                $date->format('d-m-Y'),
+                self::LABEL_HARI[self::jenisHari($date)],
+                implode(', ', array_keys($jadwal))
+            ));
+        }
     }
 
     public static function canPrint(Setoran $setoran, $user): bool
